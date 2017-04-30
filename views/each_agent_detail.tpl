@@ -7,7 +7,7 @@
     <script src="/assets/echarts.min.js"></script>
 </head>
 <body>
-    <h2>节点基础信息</h2>
+    <h2>节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
     <table border="2" align="left">
         <tr>
             <th>主机名</th>
@@ -26,7 +26,7 @@
         </tr>
     </table>
 
-    <br/><br/><br/><br/><br/>
+    <br/><br/><br/><br/>
 
     <!-- 内存信息处理 -->
     % mem_now_time_list = result["agent_mem"][0]
@@ -57,31 +57,36 @@
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '节点内存使用量实时监控'
+                text: '节点内存实时监控'
             },
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {
                     type: 'cross',
                     label: {
-                        backgroundColor: '#6a7865'
+                        backgroundColor: '#6a7985'
                     }
                 }
             },
             legend: {
-                data:['内存使用量(MB)']
+                data:['已使用(MB)', '空闲(MB)', '缓存(MB)']
             },
             toolbox: {
                 show: true,
                 feature: {
-                    dataZoom: {
-                        yAxisIndex: 'none'
-                    },
                     magicType: {type: ['line', 'bar']},
                     restore: {},
                     saveAsImage: {}
                 }
             },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 30,
+                    startValue: mem_date_arr
+                }
+            ],
             grid: {
                 left: '3%',
                 right: '4%',
@@ -105,26 +110,28 @@
                     axisLabel: {
                         formatter: '{value}MB'
                     },
-                    name: '内存使用量(MB)'
+                     name: '内存(MB)'
                 }
             ],
             series: [
                 {
-                    name: '内存使用量(MB)',
+                    name: '已使用(MB)',
                     type: 'line',
-                    markPoint: {
-                        data: [
-                            {type: 'max', name: '最大值'},
-                            {type: 'min', name: '最小值'}
-                        ]
-                    },
-                    markLine: {
-                        data: [
-                            {type: 'average', name: '平均值'}
-                        ]
-                    },
+                    areaStyle: {normal: {}},
                     data: {{mem_usage}}
-                }
+                },
+                {
+                    name: '空闲(MB)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{mem_free}}
+                },
+                {
+                    name: '缓存(MB)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{mem_cached}}
+                },
             ]
         };
 
@@ -132,7 +139,9 @@
         myChartMem.setOption(option);
     </script>
 
-    </br></br></br>
+
+
+
 
 </body>
 </html>
