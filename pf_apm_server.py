@@ -137,7 +137,7 @@ def show_agent(ip_hostname):
         # show_agent_mem_res[1] = list(unzip_mem[1:])
         once_agent_res['agent_mem'] = unzip_mem
         #
-        # # 采集此节点的CPU信息
+        # 采集此节点的CPU信息
         # show_agent_CPU_USAGE = """SELECT capturetime, CPU_USAGE FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         # db.cur.execute(show_agent_CPU_USAGE)
         # show_agent_CPU_USAGE_temp = db.cur.fetchall()
