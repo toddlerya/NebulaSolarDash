@@ -43,7 +43,7 @@ class InfoGather:
 
     def get_platform(self):
         """
-        获取操作系统名称，内核信息
+        Get the OS name, hostname and kernel
         """
         try:
             osname = " ".join(platform.linux_distribution())
@@ -52,7 +52,7 @@ class InfoGather:
             if osname == '  ':
                 osname = uname[0]
 
-            data = "osname:{OS},kernel:{KER}".format(OS=osname, KER=uname[2])
+            data = {'osname': osname, 'hostname': uname[1], 'kernel': uname[2]}
 
         except Exception as err:
             data = str(err)
@@ -252,7 +252,9 @@ class InfoGather:
 
     def get_disk_rw(self):
         """
-        获取硬盘的读写速度
+        通过/proc/diskstats获取硬盘的读写速度
+        第4个域：读花费的毫秒数，这是所有读操作所花费的毫秒数；//基准
+        第8个域：写花费的毫秒数，这是所有写操作所花费的毫秒数；//基准
         """
         try:
             pipe = os.popen("cat /proc/partitions | grep -v 'major' | awk '{print $4}'")
@@ -308,7 +310,12 @@ class InfoGather:
             percent = (100 - ((freemem * 100) / allmem))
             usage = (allmem - freemem)
 
-            mem_usage = {'usage': usage, 'buffers': buffers, 'cached': cachedmem, 'free': freemem, 'percent': percent}
+            mem_usage = {'usage': usage,
+                         'buffers': buffers,
+                         'cached': cachedmem,
+                         'free': freemem,
+                         'all': allmem,
+                         'percent': percent}
 
             data = mem_usage
 
