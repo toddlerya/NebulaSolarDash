@@ -339,14 +339,14 @@ def gather_agent(ip, port, interval=60):
         ig = InfoGather()
         info_data = ig.run_all_get_func()
         print "info_data-->", info_data
-        # try:
-        #     req = urllib2.Request("http://{IP}:{PORT}/update/".format(IP=ip, PORT=port), json.dumps(info_data), {'Content-Type': 'application/json'})
-        #     f = urllib2.urlopen(req)
-        #     response = f.read()
-        #     print response
-        #     f.close()
-        # except Exception as e:
-        #     print e
+        try:
+            req = urllib2.Request("http://{IP}:{PORT}/update/".format(IP=ip, PORT=port), json.dumps(info_data), {'Content-Type': 'application/json'})
+            f = urllib2.urlopen(req)
+            response = f.read()
+            print response
+            f.close()
+        except Exception as e:
+            print e
         time.sleep(int(interval))
 
 

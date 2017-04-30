@@ -22,24 +22,24 @@ class ApmDB:
         self.db_name = "pf_apm.db"
         self.conn = sqlite3.connect(self.db_name)
         self.cur = self.conn.cursor()
-        init_sql = """
-        CREATE TABLE IF NOT EXISTS platform_apm (
-          ID INTEGER PRIMARY KEY AUTOINCREMENT,
-          HOSTNAME TEXT NOT NULL,
-          IP TEXT NOT NULL,
-          CAPTURETIME INTEGER NOT NULL,
-          CPU TEXT NOT NULL,
-          CPU_USAGE FLOAT NOT NULL,
-          LOAD TEXT NOT NULL,
-          TRAFFIC TEXT NOT NULL,
-          NETSTAT TEXT NOT NULL,
-          MEM TEXT NOT NULL,
-          DISK TEXT NOT NULL,
-          DISK_RW TEXT NOT NULL,
-          PLATFORM TEXT NOT NULL,
-          UPTIME TEXT NOT NULL
-        )
-        """
+        init_sql = ('\n'
+                    '        CREATE TABLE IF NOT EXISTS ns_db (\n'
+                    '          ID INTEGER PRIMARY KEY AUTOINCREMENT,\n'
+                    '          HOSTNAME TEXT NOT NULL,\n'
+                    '          IP TEXT NOT NULL,\n'
+                    '          CAPTURETIME INTEGER NOT NULL,\n'
+                    '          CPU TEXT NOT NULL,\n'
+                    '          CPU_USAGE FLOAT NOT NULL,\n'
+                    '          LOAD TEXT NOT NULL,\n'
+                    '          TRAFFIC TEXT NOT NULL,\n'
+                    '          NETSTAT TEXT NOT NULL,\n'
+                    '          MEM TEXT NOT NULL,\n'
+                    '          DISK TEXT NOT NULL,\n'
+                    '          DISK_RW TEXT NOT NULL,\n'
+                    '          PLATFORM TEXT NOT NULL,\n'
+                    '          UPTIME TEXT NOT NULL\n'
+                    '        )\n'
+                    '        ')
         self.cur.execute(init_sql)
         self.conn.commit()
 
@@ -50,17 +50,18 @@ app = Bottle()
 
 @app.post('/update/')
 def update():
-    insert_sql = ""
     insert_data = request.json
     print insert_data
     try:
-        insert_sql = """
-        INSERT INTO
-        platform_apm (HOSTNAME, IP, CAPTURETIME, CPU, CPU_USAGE, LOAD, TRAFFIC, MEM_TOTAL, MEM_USE, MEM_FREE)
-        VALUES
-        ("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s")""" \
-        % (insert_data['hostname'], insert_data['ip'], insert_data['capturetime'], insert_data['cpu_info'], insert_data['CPU_USAGE'],
-           insert_data['load'], insert_data['traffic'], insert_data['mem_total'], insert_data['mem_use'], insert_data['mem_free'])
+        insert_sql = \
+             ('\n'
+              '    INSERT INTO\n'
+              '    ns_db (HOSTNAME, IP, CAPTURETIME, CPU, CPU_USAGE, LOAD, TRAFFIC, NETSTAT, MEM, DISK, DISK_RW, PLATFORM, UPTIME)\n'
+              '    VALUES\n'
+              '    ("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s")') \
+              % (insert_data['hostname'], insert_data['ip'], insert_data['capturetime'], insert_data['cpus'],
+                 insert_data['cpu_usage'], insert_data['load'], insert_data['traffic'], insert_data['netstat'],
+                 insert_data['mem'], insert_data['disk'], insert_data['disk_rw'], insert_data['platform'], insert_data['uptime'])
         adb.cur.execute(insert_sql)
         adb.conn.commit()
     except sqlite3.IntegrityError as e:
@@ -80,7 +81,7 @@ def server_assets(static_filename):
 @view("agent_info")
 def agent():
     try:
-        query_all_agent = """SELECT DISTINCT (ip), hostname FROM platform_apm;"""
+        query_all_agent = """SELECT DISTINCT (ip), hostname FROM ns_db;"""
         adb.cur.execute(query_all_agent)
         query_all_agent_res = adb.cur.fetchall()
         # print query_all_agent_res
@@ -101,7 +102,7 @@ def show_agent(ip_hostname):
         once_agent_res = dict()
 
         # 采集此节点的静态信息
-        show_agent_info = """SELECT hostname, ip, cpu, LOAD, mem_total, MAX(capturetime) FROM platform_apm WHERE ip = "{IP_H}" or hostname = "{IP_H}" GROUP BY ip;""".format(IP_H=ip_hostname)
+        show_agent_info = """SELECT hostname, ip, cpu, LOAD, mem_total, MAX(capturetime) FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}" GROUP BY ip;""".format(IP_H=ip_hostname)
         # print "exec show_agent_info ---> ", show_agent_info
         adb.cur.execute(show_agent_info)
         show_agent_info_res = adb.cur.fetchall()
@@ -112,7 +113,7 @@ def show_agent(ip_hostname):
         once_agent_res['agent_static'] = show_agent_info_res
 
         # 采集此节点的所有内存信息
-        show_agent_mem_use = """SELECT capturetime, mem_use FROM platform_apm WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        show_agent_mem_use = """SELECT capturetime, mem_use FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         # print "exec show_agent_mem_usage ---> ", show_agent_mem_usage
         adb.cur.execute(show_agent_mem_use)
         show_agent_mem_use_temp = adb.cur.fetchall()
@@ -130,7 +131,7 @@ def show_agent(ip_hostname):
         once_agent_res['agent_mem_use'] = show_agent_mem_use_res
 
         # 采集此节点的CPU信息
-        show_agent_CPU_USAGE = """SELECT capturetime, CPU_USAGE FROM platform_apm WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        show_agent_CPU_USAGE = """SELECT capturetime, CPU_USAGE FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         adb.cur.execute(show_agent_CPU_USAGE)
         show_agent_CPU_USAGE_temp = adb.cur.fetchall()
         unzip_CPU_USAGE = zip(*show_agent_CPU_USAGE_temp)
@@ -140,7 +141,7 @@ def show_agent(ip_hostname):
         once_agent_res['agent_CPU_USAGE'] = show_agent_CPU_USAGE_res
 
         # 采集此节点的网卡信息
-        show_agent_net = """SELECT capturetime, net FROM platform_apm WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        show_agent_net = """SELECT capturetime, net FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         adb.cur.execute(show_agent_net)
         show_agent_net_temp = adb.cur.fetchall()
         unzip_net = zip(*show_agent_net_temp)
