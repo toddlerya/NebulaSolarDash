@@ -26,7 +26,7 @@
         </tr>
     </table>
 
-    <br/><br/><br/><br/><br/>
+    <br/><br/><br/><br/>
 
     <!-- 内存信息处理 -->
     % mem_now_time_list = result["agent_mem"][0]
