@@ -105,12 +105,9 @@ def show_agent(ip_hostname):
         db.cur.execute(show_agent_info)
         # 将查询的结果由元组转为列表
         show_agent_info_res = list(db.cur.fetchall()[0])
-
         # 将此条数据时间由绝对秒转为yyyymmdd-HH:MM:ss
         now_time = str(time.strftime("%Y%m%d-%H:%M:%S", time.localtime(show_agent_info_res[-1])))
         show_agent_info_res[-1] = now_time
-
-        print "show_agent_info_res--->", show_agent_info_res
         once_agent_res['agent_static'] = show_agent_info_res
 
         # ---------------------------start: 采集此节点的所有内存信息-------------------------------------
@@ -121,14 +118,13 @@ def show_agent(ip_hostname):
             ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_mem)
         show_agent_mem_temp = db.cur.fetchall()
-        print "show_agent_mem_temp--> ", show_agent_mem_temp
         # 通过zip逆转采集时间和内存使用量的对应关系:
         # [(1493087620, u'6186'), (1493087625, u'6186')] ---> [(1493087620, 1493087625), (u'6186', u'6186')]
         unzip_mem = zip(*show_agent_mem_temp)
-        print unzip_mem
         once_agent_res['agent_mem'] = unzip_mem
 
-        # 采集此节点的CPU信息
+        # ---------------------------start: 采集此节点的CPU信息-------------------------------------
+
         show_agent_cpu_usage = """SELECT capturetime, cpu_usage
             FROM ns_cpu WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_cpu_usage)
@@ -139,7 +135,8 @@ def show_agent(ip_hostname):
         show_agent_cpu_usage_res[1] = list(unzip_cpu_usage[1])
         once_agent_res['agent_cpu'] = show_agent_cpu_usage_res
 
-        # 采集此节点的负载信息
+        # ---------------------------start: 采集此节点的负载信息-------------------------------------
+
         show_agent_load= """SELECT capturetime, load_avg
             FROM ns_cpu WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_load)
@@ -149,19 +146,23 @@ def show_agent(ip_hostname):
         show_agent_load_res = list(unzip_load[1])
         once_agent_res['agent_load'] = show_agent_load_res
 
-        # 采集此节点的网卡信息
-        show_agent_net = """SELECT capturetime, interface, traffic_in, traffic_out
+        # ---------------------------start: 采集此节点的网卡流量信息-------------------------------------
+
+        show_agent_traffic = """SELECT capturetime, interface, traffic_in, traffic_out
             FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
-        # db.cur.execute(show_agent_net)
-        # show_agent_net_temp = db.cur.fetchall()
-        # unzip_net = zip(*show_agent_net_temp)
-        # show_agent_net_res = ["", ""]
-        # show_agent_net_res[0] = list(unzip_net[0])
-        # show_agent_net_res[1] = list(unzip_net[1])
-        # show_agent_net_split_detail = map((lambda x: x.split("--")), show_agent_net_res[1])
-        # show_agent_net_res[1] = show_agent_net_split_detail
-        # print "show_agent_net_res-->", show_agent_net_res
-        # once_agent_res['agent_net_use'] = show_agent_net_res
+        db.cur.execute(show_agent_traffic)
+        show_agent_traffic_temp = db.cur.fetchall()
+        unzip_traffic = zip(*show_agent_traffic_temp)
+        once_agent_res['agent_traffic'] = unzip_traffic
+
+        # ---------------------------start: 采集此节点的硬盘读写速度信息-------------------------------------
+        # show_agent_traffic = """SELECT capturetime, interface, traffic_in, traffic_out
+        #     FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        # db.cur.execute(show_agent_traffic)
+        # show_agent_traffic_temp = db.cur.fetchall()
+        # unzip_traffic = zip(*show_agent_traffic_temp)
+        # print '====unzip_traffic====', unzip_traffic
+        # once_agent_res['agent_traffic'] = unzip_traffic
 
         # print "once_agent_res--->", once_agent_res
         all_agent_data = {"result": once_agent_res}
