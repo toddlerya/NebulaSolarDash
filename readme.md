@@ -14,6 +14,7 @@
 
 
 # 使用效果
+下图是在Ubuntu 14.04 trusty的使用效果
 
 ![](/assets/picture/NebulaSolarDash.gif)
 
