@@ -15,6 +15,20 @@
 
 
 # 使用方法
-## 1. 配置`conf`目录下的pf_apm.ini配置和pf_ip.ini
+## 1. 配置`conf`目录下的`ns.ini`配置:
+
+    [server]
+    ; 服务端IP
+    ip = 192.168.233.128
+    ; 服务端端口号
+    port = 8081
+    debug = True
+    [agent]
+    ; 客户端采集数据间隔时间, 单位是s
+    interval = 2
+    install_path = /home/RunTimeNSDash
+    ;所有需要监控的节点的ip,以英文逗号分隔
+    [all_agent_ip]
+    ips = 192.168.233.128
 
 
