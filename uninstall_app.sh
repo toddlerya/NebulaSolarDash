@@ -42,7 +42,7 @@ LogErrorMsg()
 check_auto_ssh()
 {
 	ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no ${INSTALL_IP} 'exit'
-	if(($?!=0))
+	if [ $? -ne 0 ]
 	then
 		LogErrorMsg "can not logon $INSTALL_IP without passwd."
 		exit 1
@@ -51,7 +51,7 @@ check_auto_ssh()
 
 stop_agent()
 {
-	agent_pid=`ssh ${INSTALL_IP} ps aux | grep "pid_apm_agent.py" | grep -v grep | awk -F " " '{print $2}'`
+	agent_pid=`ssh ${INSTALL_IP} ps aux | grep "ns_agent.py" | grep -v grep | awk -F " " '{print $2}'`
 	if [ "$agent_pid" = "" ]
 	then
 		echo "没有需要停止的客户端"

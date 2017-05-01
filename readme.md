@@ -19,7 +19,9 @@
 
 
 # 使用方法
-## 1. 配置`conf`目录下的`ns.ini`文件:
+## 1. 首先在服务端服务器和各个客户端服务器之间建立主机信任，确保从服务端可以直接ssh连接到客户端服务器不需要输入密码
+
+## 2. 配置`conf`目录下的`ns.ini`文件:
 
     [server]
     ; 服务端IP
@@ -35,11 +37,12 @@
     [all_agent_ip]
     ips = 192.168.233.128
 
-## 2. 启动服务
+## 3. 启动服务
     cd NebulaSolarDash
     python run.py
+    等一分钟就可以在 http://{server_ip}:{port} 看到各个客户端列表了。
 
-## 3. 停止服务
+## 4. 停止服务
     cd NebulaSolarDash
     python stop.py
 

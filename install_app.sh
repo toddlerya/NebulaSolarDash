@@ -42,7 +42,7 @@ LogErrorMsg()
 check_auto_ssh()
 {
 	ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no ${INSTALL_IP} 'exit'
-	if(($?!=0))
+	if [ $? -ne 0 ]
 	then
 		LogErrorMsg "can not logon $INSTALL_IP without passwd."
 		exit 1
@@ -59,7 +59,7 @@ set_crond()
 install_to_node()
 {
 	rm -rf ${APP_TAR_NAME}
-	tar czvf ${APP_TAR_NAME} lib conf pf_apm_agent.py start_agent.sh 1>/dev/null 2>/dev/null
+	tar czvf ${APP_TAR_NAME} lib conf ns_agent.py start_agent.sh 1>/dev/null 2>/dev/null
 	ssh ${INSTALL_IP} "rm -rf ${INSTALL_PATH}"
 	ssh ${INSTALL_IP} "mkdir -p ${INSTALL_PATH}"
 	scp -r ${APP_TAR_NAME} root@${INSTALL_IP}:${INSTALL_PATH}  1>/dev/null 2>/dev/null

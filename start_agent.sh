@@ -45,7 +45,7 @@ start_agent()
 	agent_pid=`ps aux | grep "ns_agent.py" | grep -v grep | awk -F " " '{print $2}'`
 	if [ "$agent_pid" = "" ]
 	then
-		cd ${INSTALL_PATH}; nohup python pf_apm_agent.py &
+		cd ${INSTALL_PATH}; nohup python ns_agent.py &
 	else
 		exit 1
 	fi
