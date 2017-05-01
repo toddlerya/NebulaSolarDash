@@ -15,7 +15,7 @@
 
 # 使用效果
 
-[!/assets/picture/NebulaSolarDash.gif]
+![](/assets/picture/NebulaSolarDash.gif)
 
 
 # 使用方法
