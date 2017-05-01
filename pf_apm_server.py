@@ -11,7 +11,7 @@ from init_db import NSDb
 
 class APMConf:
     def __init__(self):
-        apm_conf = re_joint_dir_by_os("conf|pf_apm.ini")
+        apm_conf = re_joint_dir_by_os("conf|ns.ini")
         self.server_ip = get_conf_pat(apm_conf, "server", "ip")
         self.server_port = get_conf_pat(apm_conf, "server", "port")
         self.debug = get_conf_pat(apm_conf, "server", "debug")

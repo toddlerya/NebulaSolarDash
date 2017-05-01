@@ -10,7 +10,7 @@ import os
 
 class APMConf:
     def __init__(self):
-        apm_conf = re_joint_dir_by_os("conf|pf_apm.ini")
+        apm_conf = re_joint_dir_by_os("conf|ns.ini")
         self.all_agent_ip = get_conf_pat(apm_conf, "all_agent_ip", "ips")
 
 

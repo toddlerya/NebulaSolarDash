@@ -16,7 +16,7 @@ from lib.common_lib import re_joint_dir_by_os, get_conf_pat
 
 class APMConf:
     def __init__(self):
-        apm_conf = re_joint_dir_by_os("conf|pf_apm.ini")
+        apm_conf = re_joint_dir_by_os("conf|ns.ini")
         self.server_ip = get_conf_pat(apm_conf, "server", "ip")
         self.server_port = get_conf_pat(apm_conf, "server", "port")
         self.agent_interval = get_conf_pat(apm_conf, "agent", "interval")
