@@ -15,7 +15,7 @@
 
 
 # 使用方法
-## 1. 配置`conf`目录下的`ns.ini`配置:
+## 1. 配置`conf`目录下的`ns.ini`文件:
 
     [server]
     ; 服务端IP
@@ -30,5 +30,15 @@
     ;所有需要监控的节点的ip,以英文逗号分隔
     [all_agent_ip]
     ips = 192.168.233.128
+
+## 2. 启动服务
+    cd NebulaSolarDash
+    python run.py
+
+## 3. 停止服务
+    cd NebulaSolarDash
+    python stop.py
+
+
 
 
