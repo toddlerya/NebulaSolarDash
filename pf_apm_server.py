@@ -42,9 +42,9 @@ def update():
                  (data['hostname'], data['ip'], data['capturetime'], data['mem']['all'], data['mem']['usage'], data['mem']['free'], data['mem']['cached'], data['mem']['buffers'], data['mem']['percent'])
     # 注意：list类型插入数据库需要先序列化为json类型
     ns_disk_sql = "INSERT INTO " \
-                 "ns_disk (hostname, ip, capturetime, disk, disk_read, disk_write) " \
-                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s') " % \
-                 (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), data['disk_rw'][0][1], data['disk_rw'][0][2])
+                 "ns_disk (hostname, ip, capturetime, disk, disk_io, disk_read, disk_write) " \
+                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                 (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), data['disk_rw'][0][0], data['disk_rw'][0][1], data['disk_rw'][0][2])
     ns_net_sql = "INSERT INTO " \
                   "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, netstat) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
@@ -156,15 +156,14 @@ def show_agent(ip_hostname):
         once_agent_res['agent_traffic'] = unzip_traffic
 
         # ---------------------------start: 采集此节点的硬盘读写速度信息-------------------------------------
-        # show_agent_traffic = """SELECT capturetime, interface, traffic_in, traffic_out
-        #     FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
-        # db.cur.execute(show_agent_traffic)
-        # show_agent_traffic_temp = db.cur.fetchall()
-        # unzip_traffic = zip(*show_agent_traffic_temp)
-        # print '====unzip_traffic====', unzip_traffic
-        # once_agent_res['agent_traffic'] = unzip_traffic
+        show_agent_diskio = """SELECT capturetime, disk_io, disk_read, disk_write
+            FROM ns_disk WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        db.cur.execute(show_agent_diskio)
+        show_agent_diskio_temp = db.cur.fetchall()
+        unzip_diskio = zip(*show_agent_diskio_temp)
+        print '========disk_io_unzip===', unzip_diskio
+        once_agent_res['agent_diskio'] = unzip_diskio
 
-        # print "once_agent_res--->", once_agent_res
         all_agent_data = {"result": once_agent_res}
 
         return all_agent_data

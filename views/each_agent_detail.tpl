@@ -8,23 +8,25 @@
 </head>
 <body>
     <h2>节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
-    <table border="2" align="left">
-        <tr>
-            <th>主机名</th>
-            <th>IP地址</th>
-            <th>CPU</th>
-            <th>内存(MB)</th>
-            <th>操作系统</th>
-            <th>内核版本</th>
-            <th>运行时长</th>
-            <th>当前时间</th>
-        </tr>
-        <tr>
-            % for item in result["agent_static"]:
-                <td>{{item}}</td>
-            % end
-        </tr>
-    </table>
+    <div>
+        <table border="2" align="left">
+            <tr>
+                <th>主机名</th>
+                <th>IP地址</th>
+                <th>CPU</th>
+                <th>内存(MB)</th>
+                <th>操作系统</th>
+                <th>内核版本</th>
+                <th>运行时长</th>
+                <th>当前时间</th>
+            </tr>
+            <tr>
+                % for item in result["agent_static"]:
+                    <td>{{item}}</td>
+                % end
+            </tr>
+        </table>
+    </div>
 
     <br/><br/><br/><br/>
 
@@ -108,7 +110,7 @@
                     type: 'value',
                     max: {{mem_all[0]}},
                     axisLabel: {
-                        formatter: '{value}MB'
+                        formatter: '{value} MB'
                     },
                      name: '内存(MB)'
                 }
@@ -217,7 +219,7 @@
                     type: 'value',
                     max: 100,
                     axisLabel: {
-                        formatter: '{value}%'
+                        formatter: '{value} %'
                     },
                      name: 'CPU使用率(%)'
                 }
@@ -395,7 +397,7 @@
                 {
                     type: 'value',
                     axisLabel: {
-                        formatter: '{value}kbps'
+                        formatter: '{value} kbps'
                     },
                      name: '网卡：{{traffic_interface}}'
                 }
@@ -418,6 +420,110 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChartTraffic.setOption(option);
+    </script>
+
+    <br/>
+
+    <!-- 磁盘读写信息处理 -->
+    % diskio_now_time_list = result["agent_diskio"][0]
+    % diskio_disk = result["agent_diskio"][1][0]
+    % diskio_read = list(result["agent_diskio"][2])
+    % diskio_write = list(result["agent_diskio"][3])
+    % diskio_date_time_list = list()
+    % import time
+    % for diskio_now_time in diskio_now_time_list:
+    %   diskio_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(diskio_now_time))
+    %   diskio_date_time_list.append(diskio_date_time)
+    % end
+
+    <script type="text/javascript">
+        var diskio_date_arr = new Array();
+        % for diskio_time_item in diskio_date_time_list:
+        diskio_date_arr.push("{{diskio_time_item}}");
+        % end
+    </script>
+
+    <!-- 为diskio-ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="diskio" align="left" style="width: 1750px;height:220px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChartDiskio = echarts.init(document.getElementById('diskio'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '节点磁盘IO实时监控'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            legend: {
+                data:['读取(ms)', '写入(ms)']
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    magicType: {type: ['line', 'bar']},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 100,
+                    startValue: diskio_date_arr
+                }
+            ],
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    name: '时间',
+                    nameLocation: 'end',
+                    boundaryGap: false,
+                    nameGap: 40,
+                    data: diskio_date_arr
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value} ms'
+                    },
+                     name: '硬盘：{{diskio_disk}}'
+                }
+            ],
+            series: [
+                {
+                    name: '读取(ms)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{diskio_read}}
+                },
+                {
+                    name: '写入(ms)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{diskio_write}}
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChartDiskio.setOption(option);
     </script>
 
 </body>

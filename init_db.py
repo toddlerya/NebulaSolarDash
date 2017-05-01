@@ -69,8 +69,9 @@ class NSDb:
                     '          IP TEXT NOT NULL,\n'
                     '          CAPTURETIME INTEGER NOT NULL,\n'
                     '          DISK TEXT NOT NULL,\n'
-                    '          DISK_READ TEXT NOT NULL,\n'
-                    '          DISK_WRITE TEXT NOT NULL\n'
+                    '          DISK_IO TEXT NOT NULL,\n'
+                    '          DISK_READ INTEGER NOT NULL,\n'
+                    '          DISK_WRITE INTEGER NOT NULL\n'
                     '        )\n'
                     '        ')
         self.cur.execute(init_sql)
