@@ -10,7 +10,7 @@
 
 工具分为客户端和服务端两部分：
 服务端使用了bottle来作为web框架，echarts来渲染生成图表；
-客户端使用Python原生类库采集服务器资源，写服务端时候参考了[pyDash](https://github.com/k3oni/pydash)
+客户端使用Python原生类库采集服务器资源，客户端采集数据部分端参考了[pyDash](https://github.com/k3oni/pydash)
 
 
 
