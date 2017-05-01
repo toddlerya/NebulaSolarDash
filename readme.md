@@ -13,6 +13,10 @@
 客户端使用Python原生类库采集服务器资源，客户端采集数据部分代码参考了[pyDash](https://github.com/k3oni/pydash)
 
 
+# 使用效果
+
+[!/assets/picture/NebulaSolarDash.gif]
+
 
 # 使用方法
 ## 1. 配置`conf`目录下的`ns.ini`文件:
