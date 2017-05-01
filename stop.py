@@ -32,7 +32,7 @@ def uninstall_to_each_node(_ips):
 
 
 def stop_server():
-    stop_server_cmd = """ps aux | grep "pf_apm_server.py" | grep -v grep | awk -F " " '{print $2}' | xargs kill -9"""
+    stop_server_cmd = """ps aux | grep "ns_server.py" | grep -v grep | awk -F " " '{print $2}' | xargs kill -9"""
     try:
         os.system(stop_server_cmd)
         print "停止服务端成功"

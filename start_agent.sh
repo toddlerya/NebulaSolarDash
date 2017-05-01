@@ -42,7 +42,7 @@ LogErrorMsg()
 INSTALL_PATH="/home/RunTimeNSDash"
 start_agent()
 {
-	agent_pid=`ps aux | grep "pf_apm_agent.py" | grep -v grep | awk -F " " '{print $2}'`
+	agent_pid=`ps aux | grep "ns_agent.py" | grep -v grep | awk -F " " '{print $2}'`
 	if [ "$agent_pid" = "" ]
 	then
 		cd ${INSTALL_PATH}; nohup python pf_apm_agent.py &

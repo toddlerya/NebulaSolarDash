@@ -34,7 +34,7 @@ def install_to_each_node(_ips):
 
 
 def start_server():
-    start_server_cmd = "nohup python pf_apm_server.py &"
+    start_server_cmd = "nohup python ns_server.py &"
     try:
         os.system(start_server_cmd)
         ColorPrint.log_high("启动服务端成功")
