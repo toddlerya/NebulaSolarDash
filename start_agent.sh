@@ -39,7 +39,7 @@ LogErrorMsg()
     ${SETCOLOR_NORMAL}
 }
 
-INSTALL_PATH="/home/RunTimePlatformAPM"
+INSTALL_PATH="/home/RunTimeNSDash"
 start_agent()
 {
 	agent_pid=`ps aux | grep "pf_apm_agent.py" | grep -v grep | awk -F " " '{print $2}'`

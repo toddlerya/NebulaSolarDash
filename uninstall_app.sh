@@ -62,7 +62,7 @@ stop_agent()
 
 unset_crond()
 {
-	ssh ${INSTALL_IP} "rm -rf /etc/cron.d/daemon_apm_agent"
+	ssh ${INSTALL_IP} "rm -rf /etc/cron.d/daemon_ns_agent"
 	ssh ${INSTALL_IP} "service crond restart 1>/dev/null 2>/dev/null"
 }
 
@@ -72,8 +72,8 @@ uninstall_to_node()
 }
 
 INSTALL_IP=$1
-INSTALL_PATH="/home/RunTimePlatformAPM"
-APP_TAR_NAME="apm_agent.tar.gz"
+INSTALL_PATH="/home/RunTimeNSDash"
+APP_TAR_NAME="ns_agent.tar.gz"
 LogMsg "校验服务器连通性: ${INSTALL_IP}"
 check_auto_ssh
 LogMsg "开始停止"
