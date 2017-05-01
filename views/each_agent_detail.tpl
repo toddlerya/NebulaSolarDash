@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>PlatformAPM</title>
+    <title>NebulaSolarDash</title>
     <!-- 引入 echarts.js -->
     <script src="/assets/js/echarts.min.js"></script>
     <link rel="stylesheet" href="/assets/css/ns_tb.css">
