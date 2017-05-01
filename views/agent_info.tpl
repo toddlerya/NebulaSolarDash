@@ -1,13 +1,18 @@
 <html>
     <head>
-    <title>PlatformAPM</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>PlatformAPM</title>
     </head>
-    <style>
-    body { text-align:center }
-     </style>
-    <body>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/ns_tb.css">
+    <body bgcolor="99FFFF">
         <h2>Nebula-Solar服务器资源监控节点列表</h2>
-        <table border="2" align="center">
+
+        <script src="/assets/js/bootstrap.min.js"></script>
+
+        <table class="imagetable">
             <tr>
                 <th>主机名</th>
                 <th>IP地址</th>

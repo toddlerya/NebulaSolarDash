@@ -4,12 +4,13 @@
     <meta charset="utf-8">
     <title>PlatformAPM</title>
     <!-- 引入 echarts.js -->
-    <script src="/assets/echarts.min.js"></script>
+    <script src="/assets/js/echarts.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/ns_tb.css">
 </head>
-<body>
+<body bgcolor="99FFFF">
     <h2>节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
     <div>
-        <table border="2" align="left">
+        <table border="2" align="left"  class="imagetable">
             <tr>
                 <th>主机名</th>
                 <th>IP地址</th>
