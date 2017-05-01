@@ -35,8 +35,8 @@
     % mem_free = list(result["agent_mem"][3])
     % mem_cached = list(result["agent_mem"][4])
     % mem_date_time_list = list()
+    % import time
     % for mem_now_time in mem_now_time_list:
-    %   import time
     %   mem_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(mem_now_time))
     %       mem_date_time_list.append(mem_date_time)
     % end
@@ -83,7 +83,7 @@
                 {
                     type: 'inside',
                     start: 0,
-                    end: 30,
+                    end: 100,
                     startValue: mem_date_arr
                 }
             ],
@@ -192,7 +192,7 @@
                 {
                     type: 'inside',
                     start: 0,
-                    end: 30,
+                    end: 100,
                     startValue: cpu_date_arr
                 }
             ],
@@ -241,7 +241,6 @@
     <!-- 负载信息处理，时间坐标复用CPU -->
 
     % load_avg = list(result["agent_load"])
-    % end
 
     <!-- 为cpu-ECharts准备一个具备大小（宽高）的Dom -->
     <div id="load" align="left" style="width: 1750px;height:220px;"></div>
@@ -277,7 +276,7 @@
                 {
                     type: 'inside',
                     start: 0,
-                    end: 30,
+                    end: 100,
                     startValue: cpu_date_arr
                 }
             ],
@@ -300,7 +299,6 @@
             yAxis: [
                 {
                     type: 'value',
-                    max: 100,
                     name: '平均负载值'
                 }
             ],
@@ -316,6 +314,110 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChartLoad.setOption(option);
+    </script>
+
+    <br/>
+
+    <!-- 网卡流量信息处理 -->
+    % traffic_now_time_list = result["agent_traffic"][0]
+    % traffic_interface = result["agent_traffic"][1][0]
+    % traffic_in = list(result["agent_traffic"][2])
+    % traffic_out = list(result["agent_traffic"][3])
+    % traffic_date_time_list = list()
+    % import time
+    % for traffic_now_time in traffic_now_time_list:
+    %   traffic_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(traffic_now_time))
+    %   traffic_date_time_list.append(traffic_date_time)
+    % end
+
+    <script type="text/javascript">
+        var traffic_date_arr = new Array();
+        % for traffic_time_item in traffic_date_time_list:
+        traffic_date_arr.push("{{traffic_time_item}}");
+        % end
+    </script>
+
+    <!-- 为traffic-ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="traffic" align="left" style="width: 1750px;height:220px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChartTraffic = echarts.init(document.getElementById('traffic'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '节点网卡流量实时监控'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            legend: {
+                data:['接收(kbps)', '发送(kbps)']
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    magicType: {type: ['line', 'bar']},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 100,
+                    startValue: traffic_date_arr
+                }
+            ],
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    name: '时间',
+                    nameLocation: 'end',
+                    boundaryGap: false,
+                    nameGap: 40,
+                    data: traffic_date_arr
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}kbps'
+                    },
+                     name: '网卡：{{traffic_interface}}'
+                }
+            ],
+            series: [
+                {
+                    name: '接收(kbps)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{traffic_in}}
+                },
+                {
+                    name: '发送(kbps)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{traffic_out}}
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChartTraffic.setOption(option);
     </script>
 
 </body>

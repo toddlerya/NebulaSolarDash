@@ -84,8 +84,8 @@ class NSDb:
                     '          IP TEXT NOT NULL,\n'
                     '          CAPTURETIME INTEGER NOT NULL,\n'
                     '          INTERFACE TEXT NOT NULL,\n'
-                    '          TRAFFIC_IN TEXT NOT NULL,\n'
-                    '          TRAFFIC_OUT TEXT NOT NULL,\n'
+                    '          TRAFFIC_IN INTEGER NOT NULL,\n'
+                    '          TRAFFIC_OUT INTEGER NOT NULL,\n'
                     '          NETSTAT TEXT NOT NULL\n'
                     '        )\n'
                     '        ')
