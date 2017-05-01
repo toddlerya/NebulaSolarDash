@@ -2,10 +2,11 @@
 # coding: utf-8
 # author: qguo
 
+import time
+import json
 from lib.bottle import request, Bottle, view, run, static_file
 from lib.common_lib import re_joint_dir_by_os, get_conf_pat
 from init_db import NSDb
-import time
 
 
 class APMConf:
@@ -27,31 +28,27 @@ db.run_all_init_func()
 def update():
     data = request.json
     print data
-    print (data['hostname'], data['ip'], data['capturetime'], data['cpus'], data['mem']['all'], data['platform']['osname'], data['platform']['kernel'], data['uptime'])
     ns_base_sql = "INSERT INTO " \
                   "ns_base (hostname, ip, capturetime, cpu, mem, osname, kernel, uptime) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
                   (data['hostname'], data['ip'], data['capturetime'], data['cpus'], data['mem']['all'], data['platform']['osname'], data['platform']['kernel'], data['uptime'])
     ns_cpu_sql = "INSERT INTO " \
-                  "ns_cpu (hostname, ip, capturetime, cpu_usage, load_avg)" \
-                  "VALUES " \
-                  "('%s', '%s', '%s', '%s', '%s') " % \
+                  "ns_cpu (hostname, ip, capturetime, cpu_usage, load_avg) " \
+                  "VALUES ('%s', '%s', '%s', '%s', '%s') " % \
                   (data['hostname'], data['ip'], data['capturetime'], data['cpu_usage'], data['load'])
     ns_mem_sql = "INSERT INTO " \
-                 "ns_mem (hostname, ip, capturetime, mem_all, mem_usage, mem_free, mem_cached, mem_buffers, mem_percent)" \
-                 "VALUES " \
-                 "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                 "ns_mem (hostname, ip, capturetime, mem_all, mem_usage, mem_free, mem_cached, mem_buffers, mem_percent) " \
+                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
                  (data['hostname'], data['ip'], data['capturetime'], data['mem']['all'], data['mem']['usage'], data['mem']['free'], data['mem']['cached'], data['mem']['buffers'], data['mem']['percent'])
+    # 注意：list类型插入数据库需要先序列化为json类型
     ns_disk_sql = "INSERT INTO " \
-                 "ns_disk (hostname, ip, capturetime, disk, disk_read, disk_write)" \
-                 "VALUES " \
-                 "('%s', '%s', '%s', '%s', '%s', '%s') " % \
-                 (data['hostname'], data['ip'], data['capturetime'], data['disk'], data['disk_rw'][0][1], data['disk_rw'][0][2])
+                 "ns_disk (hostname, ip, capturetime, disk, disk_read, disk_write) " \
+                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s') " % \
+                 (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), data['disk_rw'][0][1], data['disk_rw'][0][2])
     ns_net_sql = "INSERT INTO " \
-                  "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, netstat)" \
-                  "VALUES " \
-                  "('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
-                  (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], data['netstat'])
+                  "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, netstat) " \
+                  "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                  (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], json.dumps(data['netstat']))
     all_sql = [ns_base_sql, ns_cpu_sql, ns_mem_sql, ns_disk_sql, ns_net_sql]
     for sql in all_sql:
         print sql
@@ -129,26 +126,32 @@ def show_agent(ip_hostname):
         # [(1493087620, u'6186'), (1493087625, u'6186')] ---> [(1493087620, 1493087625), (u'6186', u'6186')]
         unzip_mem = zip(*show_agent_mem_temp)
         print unzip_mem
-        show_agent_mem_res = ["", ""]
-        # 将绝对秒转为年月日时分秒, 由js去转换
-        # show_agent_mem_usage_res[0] = map((lambda t: (time.strftime("%Y%m%d-%H:%M:%S", time.localtime(t)))), list(unzip_mem_usage[0]))
-        # show_agent_mem_usage_res[0] = ["20170426-16:52:48", "20170426-16:52:53", "20170426-16:52:59"]
-        # show_agent_mem_res[0] = list(unzip_mem[0])
-        # show_agent_mem_res[1] = list(unzip_mem[1:])
         once_agent_res['agent_mem'] = unzip_mem
-        #
+
         # 采集此节点的CPU信息
-        # show_agent_CPU_USAGE = """SELECT capturetime, CPU_USAGE FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
-        # db.cur.execute(show_agent_CPU_USAGE)
-        # show_agent_CPU_USAGE_temp = db.cur.fetchall()
-        # unzip_CPU_USAGE = zip(*show_agent_CPU_USAGE_temp)
-        # show_agent_CPU_USAGE_res = ["", ""]
-        # show_agent_CPU_USAGE_res[0] = list(unzip_CPU_USAGE[0])
-        # show_agent_CPU_USAGE_res[1] = list(unzip_CPU_USAGE[1])
-        # once_agent_res['agent_CPU_USAGE'] = show_agent_CPU_USAGE_res
-        #
-        # # 采集此节点的网卡信息
-        # show_agent_net = """SELECT capturetime, net FROM ns_db WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        show_agent_cpu_usage = """SELECT capturetime, cpu_usage
+            FROM ns_cpu WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        db.cur.execute(show_agent_cpu_usage)
+        show_agent_cpu_usage_temp = db.cur.fetchall()
+        unzip_cpu_usage = zip(*show_agent_cpu_usage_temp)
+        show_agent_cpu_usage_res = ["", ""]
+        show_agent_cpu_usage_res[0] = list(unzip_cpu_usage[0])
+        show_agent_cpu_usage_res[1] = list(unzip_cpu_usage[1])
+        once_agent_res['agent_cpu'] = show_agent_cpu_usage_res
+
+        # 采集此节点的负载信息
+        show_agent_load= """SELECT capturetime, load_avg
+            FROM ns_cpu WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        db.cur.execute(show_agent_load)
+        show_agent_load_temp = db.cur.fetchall()
+        unzip_load = zip(*show_agent_load_temp)
+        # 时间坐标轴复用CPU信息
+        show_agent_load_res = list(unzip_load[1])
+        once_agent_res['agent_load'] = show_agent_load_res
+
+        # 采集此节点的网卡信息
+        show_agent_net = """SELECT capturetime, interface, traffic_in, traffic_out
+            FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         # db.cur.execute(show_agent_net)
         # show_agent_net_temp = db.cur.fetchall()
         # unzip_net = zip(*show_agent_net_temp)

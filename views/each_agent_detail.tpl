@@ -139,9 +139,184 @@
         myChartMem.setOption(option);
     </script>
 
+    <br/>
 
+    <!-- CPU信息处理 -->
+    % cpu_now_time_list = result["agent_cpu"][0]
+    % cpu_usage = list(result["agent_cpu"][1])
+    % cpu_date_time_list = list()
+    % for cpu_now_time in cpu_now_time_list:
+    %   import time
+    %   cpu_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(cpu_now_time))
+    %       cpu_date_time_list.append(cpu_date_time)
+    % end
 
+    <script type="text/javascript">
+        var cpu_date_arr = new Array();
+        % for cpu_time_item in cpu_date_time_list:
+        cpu_date_arr.push("{{cpu_time_item}}");
+        % end
+    </script>
 
+    <!-- 为cpu-ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="cpu" align="left" style="width: 1750px;height:220px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChartCpu = echarts.init(document.getElementById('cpu'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '节点CPU使用率实时监控'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            legend: {
+                data:['CPU使用率(%)']
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    magicType: {type: ['line', 'bar']},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 30,
+                    startValue: cpu_date_arr
+                }
+            ],
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    name: '时间',
+                    nameLocation: 'end',
+                    boundaryGap: false,
+                    nameGap: 40,
+                    data: cpu_date_arr
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    max: 100,
+                    axisLabel: {
+                        formatter: '{value}%'
+                    },
+                     name: 'CPU使用率(%)'
+                }
+            ],
+            series: [
+                {
+                    name: 'CPU使用率(%)',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{cpu_usage}}
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChartCpu.setOption(option);
+    </script>
+
+    <br/>
+
+    <!-- 负载信息处理，时间坐标复用CPU -->
+
+    % load_avg = list(result["agent_load"])
+    % end
+
+    <!-- 为cpu-ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="load" align="left" style="width: 1750px;height:220px;"></div>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChartLoad = echarts.init(document.getElementById('load'));
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '节点平均负载值实时监控'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#6a7985'
+                    }
+                }
+            },
+            legend: {
+                data:['平均负载值']
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    magicType: {type: ['line', 'bar']},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 30,
+                    startValue: cpu_date_arr
+                }
+            ],
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    name: '时间',
+                    nameLocation: 'end',
+                    boundaryGap: false,
+                    nameGap: 40,
+                    data: cpu_date_arr
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    max: 100,
+                    name: '平均负载值'
+                }
+            ],
+            series: [
+                {
+                    name: '平均负载值',
+                    type: 'line',
+                    areaStyle: {normal: {}},
+                    data: {{load_avg}}
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChartLoad.setOption(option);
+    </script>
 
 </body>
 </html>
