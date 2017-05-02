@@ -44,7 +44,7 @@ def start_server():
 
 
 def clean_history_data():
-    del_old_database = "rm -rf pf_apm.db"
+    del_old_database = "rm -rf ns.db"
     try:
         os.system(del_old_database)
         ColorPrint.log_high("删除历史数据成功")
@@ -69,7 +69,7 @@ apm = APMConf()
 
 def main():
     alert_install_path()
-    # clean_history_data()
+    clean_history_data()
     start_server()
     install_to_each_node(apm.all_agent_ip)
 

@@ -4,7 +4,7 @@
 # date：20170407
 
 
-from lib.common_lib import re_joint_dir_by_os, get_conf_pat
+from lib.common_lib import re_joint_dir_by_os, get_conf_pat, ColorPrint
 import os
 
 
@@ -20,25 +20,25 @@ def uninstall_to_each_node(_ips):
     """
     try:
         _ip_list = _ips.split(",")
-        print "此次卸载的节点共计 %s 个" % (len(_ip_list))
+        ColorPrint.log_normal("此次卸载的节点共计 %s 个" % (len(_ip_list)))
     except Exception as e:
         raise e
     for _ip in _ip_list:
         try:
             os.system("sh uninstall_app.sh {IP}".format(IP=_ip))
         except OSError:
+            ColorPrint.log_fail("ERROR: 执行 --> sh uninstall_app.sh {IP} <-- 失败".format(IP=_ip))
             print OSError
-            print "ERROR: 执行 --> sh uninstall_app.sh {IP} <-- 失败".format(IP=_ip)
 
 
 def stop_server():
     stop_server_cmd = """ps aux | grep "ns_server.py" | grep -v grep | awk -F " " '{print $2}' | xargs kill -9"""
     try:
         os.system(stop_server_cmd)
-        print "停止服务端成功"
+        ColorPrint.log_high("停止服务端成功")
     except BaseException as e:
+        ColorPrint.log_fail('停止服务端失败: %s' % stop_server_cmd)
         print e
-        print '停止服务端失败: %s' % stop_server_cmd
 
 
 def main():

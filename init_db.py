@@ -27,7 +27,12 @@ class NSDb:
                     '          UPTIME TEXT NOT NULL\n'
                     '        )\n'
                     '        ')
+        creat_base_index_sql = "CREATE UNIQUE INDEX [BASE_INDEX] ON [ns_base] ([HOSTNAME], [IP]);"
         self.cur.execute(init_sql)
+        try:
+            self.cur.execute(creat_base_index_sql)
+        except Exception as err:
+            print err
         self.conn.commit()
 
     def init_ns_cpu_tb(self):

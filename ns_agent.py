@@ -14,12 +14,12 @@ from datetime import timedelta
 from lib.common_lib import re_joint_dir_by_os, get_conf_pat
 
 
-class APMConf:
+class NSConf:
     def __init__(self):
-        apm_conf = re_joint_dir_by_os("conf|ns.ini")
-        self.server_ip = get_conf_pat(apm_conf, "server", "ip")
-        self.server_port = get_conf_pat(apm_conf, "server", "port")
-        self.agent_interval = get_conf_pat(apm_conf, "agent", "interval")
+        ns_conf = re_joint_dir_by_os("conf|ns.ini")
+        self.server_ip = get_conf_pat(ns_conf, "server", "ip")
+        self.server_port = get_conf_pat(ns_conf, "server", "port")
+        self.agent_interval = get_conf_pat(ns_conf, "agent", "interval")
 
 
 class InfoGather:
@@ -55,6 +55,7 @@ class InfoGather:
             data = {'osname': osname, 'hostname': uname[1], 'kernel': uname[2]}
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -74,6 +75,7 @@ class InfoGather:
                 data = uptime_time.split('.', 1)[0]
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -85,6 +87,7 @@ class InfoGather:
         try:
             data = os.getloadavg()[0]
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -112,6 +115,7 @@ class InfoGather:
             data = "{CPUS} x {CPU_TYPE}".format(CPUS=cpus, CPU_TYPE=data)
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -139,6 +143,7 @@ class InfoGather:
             data = total_usage
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -177,6 +182,7 @@ class InfoGather:
                 interface_data = all_traffic
 
             except Exception as err:
+                print err
                 interface_data = str(err)
 
             return interface_data
@@ -208,6 +214,7 @@ class InfoGather:
                     all_iface_data.append(net_io(net[0]))
 
         except Exception as err:
+            print err
             all_iface_data = str(err)
 
         return all_iface_data
@@ -226,6 +233,7 @@ class InfoGather:
             data = [i.split(None, 4) for i in data]
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -246,6 +254,7 @@ class InfoGather:
             data = [i.split(None, 6) for i in data]
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -280,6 +289,7 @@ class InfoGather:
             data = rws
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -320,6 +330,7 @@ class InfoGather:
             data = mem_usage
 
         except Exception as err:
+            print err
             data = str(err)
 
         return data
@@ -345,7 +356,7 @@ def gather_agent(ip, port, interval=60):
     while True:
         ig = InfoGather()
         info_data = ig.run_all_get_func()
-        print "info_data-->", info_data
+        print "<----{IP}-info_data-->".format(IP=ig.ip), info_data
         try:
             req = urllib2.Request("http://{IP}:{PORT}/update/".format(IP=ip, PORT=port), json.dumps(info_data), {'Content-Type': 'application/json'})
             f = urllib2.urlopen(req)
@@ -358,7 +369,7 @@ def gather_agent(ip, port, interval=60):
 
 
 def main():
-    apm = APMConf()
+    apm = NSConf()
     gather_agent(ip=apm.server_ip, port=int(apm.server_port), interval=apm.agent_interval)
 
 

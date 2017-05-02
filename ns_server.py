@@ -9,13 +9,16 @@ from lib.common_lib import re_joint_dir_by_os, get_conf_pat
 from init_db import NSDb
 
 
-class APMConf:
+class NSConf:
     def __init__(self):
-        apm_conf = re_joint_dir_by_os("conf|ns.ini")
-        self.server_ip = get_conf_pat(apm_conf, "server", "ip")
-        self.server_port = get_conf_pat(apm_conf, "server", "port")
-        self.debug = get_conf_pat(apm_conf, "server", "debug")
-
+        ns_conf = re_joint_dir_by_os("conf|ns.ini")
+        self.server_ip = get_conf_pat(ns_conf, "server", "ip")
+        self.server_port = get_conf_pat(ns_conf, "server", "port")
+        self.debug = get_conf_pat(ns_conf, "server", "debug")
+        self.mem_yellow = get_conf_pat(ns_conf, "server", "mem_yellow")
+        self.mem_red = get_conf_pat(ns_conf, "server", "mem_red")
+        self.cpu_yellow = get_conf_pat(ns_conf, "server", "cpu_yellow")
+        self.cpu_red = get_conf_pat(ns_conf, "server", "cpu_red")
 
 db = NSDb()
 app = Bottle()
@@ -27,8 +30,8 @@ db.run_all_init_func()
 @app.post('/update/')
 def update():
     data = request.json
-    print data
-    ns_base_sql = "INSERT INTO " \
+    print 'insert_data--->', data
+    ns_base_sql = "INSERT OR REPLACE INTO " \
                   "ns_base (hostname, ip, capturetime, cpu, mem, osname, kernel, uptime) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
                   (data['hostname'], data['ip'], data['capturetime'], data['cpus'], data['mem']['all'], data['platform']['osname'], data['platform']['kernel'], data['uptime'])
@@ -51,7 +54,7 @@ def update():
                   (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], json.dumps(data['netstat']))
     all_sql = [ns_base_sql, ns_cpu_sql, ns_mem_sql, ns_disk_sql, ns_net_sql]
     for sql in all_sql:
-        print sql
+        print "[exec_sql--->]", sql
         try:
             db.cur.execute(sql)
         except Exception as err:
@@ -75,12 +78,20 @@ def server_assets(static_filename):
 @view("agent_info")
 def agent():
     try:
-        query_all_agent = """SELECT DISTINCT (ip), hostname FROM ns_base;"""
+        query_all_agent = """
+            SELECT ns_base.hostname, ns_base.ip, mem_percent, cpu_usage
+                FROM ns_base, ns_mem, ns_cpu where
+                ns_base.capturetime=ns_mem.capturetime and
+                ns_base.ip=ns_mem.ip and
+                ns_base.capturetime=ns_cpu.capturetime and
+                ns_base.ip=ns_cpu.ip  order by ns_base.ip
+        """
         db.cur.execute(query_all_agent)
         query_all_agent_res = db.cur.fetchall()
         # print query_all_agent_res
-        server_data = [apm.server_ip, int(apm.server_port)]
-        trans_all_agent_data = [server_data, query_all_agent_res]
+        server_data = [ns.server_ip, int(ns.server_port)]
+        warn_color = map((lambda v: int(v)), [ns.mem_yellow, ns.mem_red, ns.cpu_yellow, ns.cpu_red])
+        trans_all_agent_data = [server_data, query_all_agent_res, warn_color]
         all_agent_data = {"result": trans_all_agent_data}
         return all_agent_data
     except Exception as e:
@@ -161,7 +172,6 @@ def show_agent(ip_hostname):
         db.cur.execute(show_agent_diskio)
         show_agent_diskio_temp = db.cur.fetchall()
         unzip_diskio = zip(*show_agent_diskio_temp)
-        print '========disk_io_unzip===', unzip_diskio
         once_agent_res['agent_diskio'] = unzip_diskio
 
         all_agent_data = {"result": once_agent_res}
@@ -172,5 +182,5 @@ def show_agent(ip_hostname):
 
 
 if __name__ == '__main__':
-    apm = APMConf()
-    run(app, host="0.0.0.0", port=int(apm.server_port), debug=apm.debug)
+    ns = NSConf()
+    run(app, host="0.0.0.0", port=int(ns.server_port), debug=ns.debug)

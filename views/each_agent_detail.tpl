@@ -7,10 +7,10 @@
     <script src="/assets/js/echarts.min.js"></script>
     <link rel="stylesheet" href="/assets/css/ns_tb.css">
 </head>
-<body bgcolor="99FFFF">
-    <h2>节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
+<body bgcolor="FFFFCC">
+    <h2 align="center">节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
     <div>
-        <table border="2" align="left"  class="imagetable">
+        <table border="2" align="center"  class="imagetable">
             <tr>
                 <th>主机名</th>
                 <th>IP地址</th>
@@ -218,7 +218,6 @@
             yAxis: [
                 {
                     type: 'value',
-                    max: 100,
                     axisLabel: {
                         formatter: '{value} %'
                     },

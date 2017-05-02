@@ -14,7 +14,7 @@ table.imagetable th {
     border-color: #999999;
 }
 table.imagetable td {
-    background:#dcddc0 ;
+    /*background:#dcddc0 ;*/
     border-width: 1px;
     padding: 8px;
     border-style: solid;

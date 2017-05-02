@@ -52,7 +52,7 @@ check_auto_ssh()
 set_crond()
 {
 	ssh ${INSTALL_IP}	"rm -rf /etc/cron.d/daemon_ns_agent"
-	ssh ${INSTALL_IP}	"echo '*/1 * * * * root sh $INSTALL_PATH/start_agent.sh' > /etc/cron.d/daemon_ns_agent"
+	ssh ${INSTALL_IP}	"echo '*/1 * * * * root source /etc/profile && cd $INSTALL_PATH && sh start_agent.sh' > /etc/cron.d/daemon_ns_agent"
 	ssh ${INSTALL_IP} "service crond restart 1>/dev/null 2>/dev/null"
 }
 
