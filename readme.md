@@ -10,9 +10,9 @@
 
 工具分为客户端和服务端两部分：
 服务端使用了bottle来作为web框架，echarts来渲染生成图表；
-客户端使用Python原生类库采集服务器资源，客户端采集数据部分代码参考了[pyDash](https://github.com/k3oni/pydash)
+客户端使用Python原生类库采集服务器资源，客户端采集数据部分代码参考了[pyDash](https://github.com/k3oni/pydash)。
 
-经测试，本工具可以在Ubuntu14.04-x64 和 RedHat6.3-x64正常运行
+经测试，本工具可以在Ubuntu14.04 x64 和 RedHat 6.3 x64正常运行。
 
 # 使用效果
 下图是在Ubuntu 14.04 trusty的使用效果
