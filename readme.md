@@ -31,6 +31,15 @@
     ; 服务端端口号
     port = 8081
     debug = True
+    ;报警信息阈值,百分比
+    ;举例：
+    ;cpu_yellow = 80，代表cpu使用率达到80%即提示使用黄色标示
+    ;cpu_red = 95，代表cpu使用率达到95%即提示使用黄色标示
+    mem_yellow = 80
+    mem_red = 95
+    cpu_yellow = 80
+    cpu_red = 95
+    
     [agent]
     ; 客户端采集数据间隔时间, 单位是s
     interval = 2
