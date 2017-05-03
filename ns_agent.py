@@ -163,19 +163,19 @@ class InfoGather:
             :param interface_name 网卡的名字
             """
             try:
-                net_io_data = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $1, $9}'")
-                net_ip_data = net_io_data.read().strip().split(':', 1)[-1]
-                net_io_data.close()
+                net_data1 = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $1, $9}'")
+                net_io_data = net_data1.read().strip().split(':', 1)[-1]
+                net_data1.close()
 
-                if not net_ip_data[0].isdigit():
-                    net_io_data = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $2, $10}'")
-                    net_ip_data = net_io_data.read().strip().split(':', 1)[-1]
-                    net_io_data.close()
+                if not net_io_data[0].isdigit():
+                    net_data2 = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $2, $10}'")
+                    net_io_data = net_data2.read().strip().split(':', 1)[-1]
+                    net_data2.close()
 
-                    net_ip_data = net_ip_data.split()
+                net_io_data = net_io_data.split()
 
-                traffic_in = int(net_ip_data[0])
-                traffic_out = int(net_ip_data[1])
+                traffic_in = int(net_io_data[0])
+                traffic_out = int(net_io_data[1])
 
                 all_traffic = {'interface': interface_name, 'traffic_in': traffic_in, 'traffic_out': traffic_out}
 
