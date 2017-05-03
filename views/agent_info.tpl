@@ -23,7 +23,7 @@
             % cpu_red_value = result[2][3]
             % for num, line in enumerate(result[1]):
             <tr>
-                <td style="background-color:#dcddc0">{{num}}</td>
+                <td style="background-color:#dcddc0">{{num+1}}</td>
                 <!--主机名和IP字段-->
                 % for item in line[0:2]:
                     <td style="background-color:#dcddc0"><a href='http://{{result[0][0]}}:{{result[0][1]}}/agent/{{item}}'>{{item}}</a></td>
