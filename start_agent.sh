@@ -45,7 +45,7 @@ start_agent()
 	agent_pid=`ps aux | grep "ns_agent.py" | grep -v grep | awk -F " " '{print $2}'`
 	if [ "$agent_pid" = "" ]
 	then
-		cd ${INSTALL_PATH} && nohup python ns_agent.py > log_of_ns_agent 2>&1 &
+		cd ${INSTALL_PATH} && source /etc/profile && nohup python ns_agent.py > log_of_ns_agent 2>&1 &
 	else
 		exit 1
 	fi

@@ -93,7 +93,7 @@ class NSDb:
                     '          INTERFACE TEXT NOT NULL,\n'
                     '          TRAFFIC_IN INTEGER NOT NULL,\n'
                     '          TRAFFIC_OUT INTEGER NOT NULL,\n'
-                    '          NETSTAT TEXT NOT NULL\n'
+                    '          SOCKETS TEXT NOT NULL\n'
                     '        )\n'
                     '        ')
         self.cur.execute(init_sql)

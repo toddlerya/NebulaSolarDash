@@ -49,7 +49,7 @@ class InfoGather:
             osname = " ".join(platform.linux_distribution())
             uname = platform.uname()
 
-            if osname == '  ':
+            if osname == ' ':
                 osname = uname[0]
 
             data = {'osname': osname, 'hostname': uname[1], 'kernel': uname[2]}
@@ -163,19 +163,18 @@ class InfoGather:
             :param interface_name 网卡的名字
             """
             try:
-                net_data1 = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $1, $9}'")
-                net_io_data = net_data1.read().strip().split(':', 1)[-1]
-                net_data1.close()
+                net_data = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $1, $9}'")
+                net_io_data = net_data.read().strip().split(':', 1)[-1]
+                net_data.close()
 
                 if not net_io_data[0].isdigit():
-                    net_data2 = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $2, $10}'")
-                    net_io_data = net_data2.read().strip().split(':', 1)[-1]
-                    net_data2.close()
+                    net_data = os.popen("cat /proc/net/dev |" + "grep " + interface_name + "| awk '{print $2, $10}'")
+                    net_io_data = net_data.read().strip().split(':', 1)[-1]
+                    net_data.close()
 
                 net_io_data = net_io_data.split()
-
-                traffic_in = int(net_io_data[0])
-                traffic_out = int(net_io_data[1])
+                traffic_in = int(net_io_data[0]) / 1024
+                traffic_out = int(net_io_data[1]) / 1024
 
                 all_traffic = {'interface': interface_name, 'traffic_in': traffic_in, 'traffic_out': traffic_out}
 
@@ -219,7 +218,7 @@ class InfoGather:
 
         return all_iface_data
 
-    def get_netstat(self):
+    def get_sockets(self):
         """
         获取端口号和应用
         """
@@ -356,12 +355,12 @@ def gather_agent(ip, port, interval=60):
     while True:
         ig = InfoGather()
         info_data = ig.run_all_get_func()
-        print "<----{IP}-info_data-->".format(IP=ig.ip), info_data
+        # print "<----{IP}-info_data-->".format(IP=ig.ip), info_data
         try:
             req = urllib2.Request("http://{IP}:{PORT}/update/".format(IP=ip, PORT=port), json.dumps(info_data), {'Content-Type': 'application/json'})
             f = urllib2.urlopen(req)
             response = f.read()
-            print response
+            # print response
             f.close()
         except Exception as e:
             print e

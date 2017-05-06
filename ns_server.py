@@ -30,7 +30,6 @@ db.run_all_init_func()
 @app.post('/update/')
 def update():
     data = request.json
-    print 'insert_data--->', data
     ns_base_sql = "INSERT OR REPLACE INTO " \
                   "ns_base (hostname, ip, capturetime, cpu, mem, osname, kernel, uptime) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
@@ -49,12 +48,12 @@ def update():
                  "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
                  (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), data['disk_rw'][0][0], data['disk_rw'][0][1], data['disk_rw'][0][2])
     ns_net_sql = "INSERT INTO " \
-                  "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, netstat) " \
+                  "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, sockets) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
-                  (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], json.dumps(data['netstat']))
+                  (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], json.dumps(data['sockets']))
     all_sql = [ns_base_sql, ns_cpu_sql, ns_mem_sql, ns_disk_sql, ns_net_sql]
     for sql in all_sql:
-        print "[exec_sql--->]", sql
+        # print "[exec_sql--->] {SQL} \n".format(SQL=sql)
         try:
             db.cur.execute(sql)
         except Exception as err:
@@ -88,7 +87,6 @@ def agent():
         """
         db.cur.execute(query_all_agent)
         query_all_agent_res = db.cur.fetchall()
-        # print query_all_agent_res
         server_data = [ns.server_ip, int(ns.server_port)]
         warn_color = map((lambda v: int(v)), [ns.mem_yellow, ns.mem_red, ns.cpu_yellow, ns.cpu_red])
         trans_all_agent_data = [server_data, query_all_agent_res, warn_color]
@@ -100,7 +98,6 @@ def agent():
 
 @app.route('/agent/<ip_hostname>', method="GET")
 @view("each_agent_detail")
-# @view("ubuntu")
 def show_agent(ip_hostname):
     try:
         # 初始化存储返回信息的字典
@@ -109,7 +106,7 @@ def show_agent(ip_hostname):
         # ---------------------------start: 采集此节点的静态信息-------------------------------------
 
         show_agent_info = """
-            SELECT hostname, ip, cpu, mem, osname, kernel, uptime, MAX(capturetime)
+            SELECT hostname, ip, cpu, mem, osname, kernel, uptime, max(capturetime)
             FROM ns_base
             WHERE ip = "{IP_H}" or hostname = "{IP_H}"
             GROUP BY ip;""".format(IP_H=ip_hostname)
@@ -173,6 +170,23 @@ def show_agent(ip_hostname):
         show_agent_diskio_temp = db.cur.fetchall()
         unzip_diskio = zip(*show_agent_diskio_temp)
         once_agent_res['agent_diskio'] = unzip_diskio
+
+        # ---------------------------start: 采集此节点的硬盘存储信息-------------------------------------
+        show_agent_disk = """SELECT max(capturetime), disk
+            FROM ns_disk WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        db.cur.execute(show_agent_disk)
+        show_agent_disk_temp = db.cur.fetchall()
+        show_agent_disk_json = json.loads(show_agent_disk_temp[0][1])
+        once_agent_res['agent_disk'] = show_agent_disk_json
+
+        # ---------------------------start: 采集此节点的sockets连接信息-------------------------------------
+        show_agent_sockets = """SELECT max(capturetime), sockets
+            FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        db.cur.execute(show_agent_sockets)
+        show_agent_sockets_temp = db.cur.fetchall()
+        show_agent_sockets_json = json.loads(show_agent_sockets_temp[0][1])
+        # 因为是表格，不需要时间列，所以直接取[1]
+        once_agent_res['agent_sockets'] = show_agent_sockets_json
 
         all_agent_data = {"result": once_agent_res}
 

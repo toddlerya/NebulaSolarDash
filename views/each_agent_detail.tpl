@@ -9,7 +9,6 @@
 </head>
 <body bgcolor="FFFFCC">
     <h2 align="center">节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
-    <div>
         <table border="2" align="center"  class="imagetable">
             <tr>
                 <th>主机名</th>
@@ -27,9 +26,8 @@
                 % end
             </tr>
         </table>
-    </div>
 
-    <br/><br/><br/><br/>
+    <br/><br/>
 
     <!-- 内存信息处理 -->
     % mem_now_time_list = result["agent_mem"][0]
@@ -525,6 +523,54 @@
         // 使用刚指定的配置项和数据显示图表。
         myChartDiskio.setOption(option);
     </script>
+
+    <table align="center">
+        <tr>
+            <td>
+                <h3 align="center">节点SOCKETS连接信息统计</h4>
+                <table border="2" align="center"  class="imagetable">
+                    <tr>
+                        <th>序号</th>
+                        <th>个数</th>
+                        <th>本地IP</th>
+                        <th>本地端口</th>
+                        <th>远程连接IP</th>
+                    </tr>
+                    % for so_num, line in enumerate(result["agent_sockets"]):
+                    <tr>
+                        <td>{{so_num+1}}</td>
+                        % for item in line:
+                        <td>{{item}}</td>
+                        % end
+                    </tr>
+                    % end
+                </table>
+            </td>
+
+            <td>
+                <h3 align="center">节点磁盘存储信息统计</h4>
+                <table border="2" align="center"  class="imagetable">
+                    <tr>
+                        <th>序号</th>
+                        <th>文件系统</th>
+                        <th>总大小</th>
+                        <th>已用</th>
+                        <th>剩余</th>
+                        <th>使用率</th>
+                        <th>挂载点</th>
+                    </tr>
+                    % for di_num, line in enumerate(result["agent_disk"]):
+                    <tr>
+                        <td>{{di_num+1}}</td>
+                        % for item in line:
+                        <td>{{item}}</td>
+                        % end
+                    </tr>
+                    % end
+                </table>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>
