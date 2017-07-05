@@ -122,25 +122,32 @@ class InfoGather:
 
     def get_cpu_usage(self):
         """
-        获取CPU使用率和正在运行的进程
+        获取CPU使用率
         """
         try:
-            pipe = os.popen("ps aux --sort -%cpu,-rss")
-            data = pipe.read().strip().split('\n')
-            pipe.close()
+            cpu_pipe = os.popen("iostat").readlines()
+            cpu_res = [line.strip("\n").split() for line in cpu_pipe]
+            cpu_data = cpu_res[3]
+            user_cpu = float(cpu_data[0])
+            nice_cpu = float(cpu_data[1])
+            system_cpu = float(cpu_data[2])
+            iowait_cpu = float(cpu_data[3])
+            steal_cpu = float(cpu_data[4])
+            idle_cpu = float(cpu_data[5])
 
-            usage = [i.split(None, 10) for i in data]
-            del usage[0]
+            usage_cpu = 100.0 - idle_cpu
 
-            total_usage = []
+            cpu_usage_data = {
+                'user_cpu': user_cpu,
+                'nice_cpu': nice_cpu,
+                'system_cpu': system_cpu,
+                'iowait_cpu': iowait_cpu,
+                'steal_cpu': steal_cpu,
+                'idle_cpu': idle_cpu,
+                'usage_cpu': usage_cpu
+            }
 
-            for element in usage:
-                usage_cpu = element[2]
-                total_usage.append(usage_cpu)
-
-            total_usage = sum(float(i) for i in total_usage)
-
-            data = total_usage
+            data = cpu_usage_data
 
         except Exception as err:
             print err
@@ -265,27 +272,38 @@ class InfoGather:
         第8个域：写花费的毫秒数，这是所有写操作所花费的毫秒数；//基准
         """
         try:
-            pipe = os.popen("cat /proc/partitions | grep -v 'major' | awk '{print $4}'")
-            data = pipe.read().strip().split('\n')
-            pipe.close()
+            # disk_io_dict = dict()
+            disk_io_pipe = os.popen("iostat -kx").readlines()
+            disk_io_res = [line.strip("\n").split() for line in disk_io_pipe]
+            disk_io_data = disk_io_res[6:-1]
+            # for each_device in disk_io_data:
+            #     disk_io_device = str(each_device[0])
+            #     each_device_value = {
+            #     'disk_io_rrqm_s': float(each_device[1]),
+            #     'disk_io_wrqm_s': float(each_device[2]),
+            #     'disk_io_r_s': float(each_device[3]),
+            #     'disk_io_w_s': float(each_device[4]),
+            #     'disk_io_rkb_s': float(each_device[5]),
+            #     'disk_io_wkb_s': float(each_device[6]),
+            #     'disk_io_avgrq_sz': float(each_device[7]),
+            #     'disk_io_avgqu_sz': float(each_device[8]),
+            #     'disk_io_await': float(each_device[9]),
+            #     'disk_io_util': float(each_device[10])
+            #     }
+            #     disk_io_dict[disk_io_device] = each_device_value
+            """
+            ================================disk_io_data数据示例==========================
+            数据的每一列题头：
+            ['Device:',  'rrqm/s',  'wrqm/s',  'r/s',  'w/s',  'rkB/s',  'wkB/s',  'avgrq-sz',  'avgqu-sz',  'await',  'svctm',  '%util']
+            实际的disk_io_data数据
+            [
+             ['sda',  '0.00',  '33.75',  '0.11',  '5.63',  '1.01',  '157.55',  '55.25',  '0.02',  '4.02',  '0.38',  '0.22'],
+             ['sdb',  '0.00',  '2.30',  '0.02',  '1.13',  '0.57',  '13.69',  '24.84',  '0.00',  '0.78',  '0.32',  '0.04'],
+             ['sdc',  '0.00',  '2.36',  '0.01',  '1.20',  '0.21',  '14.22',  '23.88',  '0.00',  '0.40',  '0.17',  '0.02']
+            ]
 
-            rws = []
-            for i in data:
-                if i.isalpha():
-                    pipe = os.popen("cat /proc/diskstats | grep -w '" + i + "'|awk '{print $4, $8}'")
-                    rw = pipe.read().strip().split()
-                    pipe.close()
-
-                    rws.append([i, rw[0], rw[1]])
-
-            if not rws:
-                pipe = os.popen("cat /proc/diskstats | grep -w '" + data[0] + "'|awk '{print $4, $8}'")
-                rw = pipe.read().strip().split()
-                pipe.close()
-
-                rws.append([data[0], rw[0], rw[1]])
-
-            data = rws
+            """
+            data = disk_io_data
 
         except Exception as err:
             print err
@@ -302,29 +320,47 @@ class InfoGather:
         获取内存使用量信息
         """
         try:
-            pipe = os.popen(
-                "free -tmo | " + "grep 'Mem' | " + "awk '{print $2,$4,$6,$7}'")
-            data = pipe.read().strip().split()
-            pipe.close()
+            mem_pipe = os.popen("free -m").readlines()
+            # 有名没有swap分区就看这里了,
+            if len(mem_pipe) == 3:
+                # 没有swap分区
+                mem_res = [line.strip("\n").split() for line in mem_pipe]
+                total_mem = int(mem_res[1][1])
+                total_used = int(mem_res[2][2])
+                total_free = int(mem_res[2][3])
+                swap_total = 0
+                swap_used = 0
+                swap_free = 0
+                percent = (100 - ((total_free * 100) / total_mem))
+            elif len(mem_pipe) == 4:
+                # 有swap分区
+                mem_res = [line.strip("\n").split() for line in mem_pipe]
+                total_mem = int(mem_res[1][1])
+                total_used = int(mem_res[2][2])
+                total_free = int(mem_res[2][3])
+                swap_total = int(mem_res[3][1])
+                swap_used = int(mem_res[3][2])
+                swap_free = int(mem_res[3][3])
+                percent = (100 - ((total_free * 100) / total_mem))
+            else:
+                # 出错了, 未知情况
+                total_mem = 0
+                total_used = 0
+                total_free = 0
+                swap_total = 0
+                swap_used = 0
+                swap_free = 0
+                percent = 0
 
-            allmem = int(data[0])
-            freemem = int(data[1])
-            buffers = int(data[2])
-            cachedmem = int(data[3])
-
-            # Memory in buffers + cached is actually available, so we count it
-            # as free. See http://www.linuxatemyram.com/ for details
-            freemem += buffers + cachedmem
-
-            percent = (100 - ((freemem * 100) / allmem))
-            usage = (allmem - freemem)
-
-            mem_usage = {'usage': usage,
-                         'buffers': buffers,
-                         'cached': cachedmem,
-                         'free': freemem,
-                         'all': allmem,
+            mem_usage = {'total': total_mem,
+                         'usage': total_used,
+                         'free': total_free,
+                         'swap_total': swap_total,
+                         'swap_used': swap_used,
+                         'swap_free': swap_free,
                          'percent': percent}
+
+            # print 'mem_usage-->', mem_usage
 
             data = mem_usage
 
@@ -360,7 +396,7 @@ def gather_agent(ip, port, interval=60):
             req = urllib2.Request("http://{IP}:{PORT}/update/".format(IP=ip, PORT=port), json.dumps(info_data), {'Content-Type': 'application/json'})
             f = urllib2.urlopen(req)
             response = f.read()
-            # print response
+            print response
             f.close()
         except Exception as e:
             print e

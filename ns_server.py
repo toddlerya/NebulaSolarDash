@@ -31,27 +31,29 @@ db.run_all_init_func()
 def update():
     data = request.json
     ns_base_sql = "INSERT OR REPLACE INTO " \
-                  "ns_base (hostname, ip, capturetime, cpu, mem, osname, kernel, uptime) " \
-                  "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
-                  (data['hostname'], data['ip'], data['capturetime'], data['cpus'], data['mem']['all'], data['platform']['osname'], data['platform']['kernel'], data['uptime'])
+                  "ns_base (hostname, ip, capturetime, cpu, mem, swap, osname, kernel, uptime) " \
+                  "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                  (data['hostname'], data['ip'], data['capturetime'], data['cpus'], data['mem']['total'], data['mem']['swap_total'], data['platform']['osname'], data['platform']['kernel'], data['uptime'])
     ns_cpu_sql = "INSERT INTO " \
-                  "ns_cpu (hostname, ip, capturetime, cpu_usage, load_avg) " \
-                  "VALUES ('%s', '%s', '%s', '%s', '%s') " % \
-                  (data['hostname'], data['ip'], data['capturetime'], data['cpu_usage'], data['load'])
+                  "ns_cpu (hostname, ip, capturetime, user_cpu, nice_cpu, system_cpu, iowait_cpu, idle_cpu, usage_cpu, load_avg) " \
+                  "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                  (data['hostname'], data['ip'], data['capturetime'], data['cpu_usage']['user_cpu'], data['cpu_usage']['nice_cpu'], data['cpu_usage']['system_cpu'], data['cpu_usage']['iowait_cpu'], data['cpu_usage']['idle_cpu'], data['cpu_usage']['usage_cpu'], data['load'])
     ns_mem_sql = "INSERT INTO " \
-                 "ns_mem (hostname, ip, capturetime, mem_all, mem_usage, mem_free, mem_cached, mem_buffers, mem_percent) " \
-                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
-                 (data['hostname'], data['ip'], data['capturetime'], data['mem']['all'], data['mem']['usage'], data['mem']['free'], data['mem']['cached'], data['mem']['buffers'], data['mem']['percent'])
+                 "ns_mem (hostname, ip, capturetime, mem_total, mem_usage, mem_free, swap_total, swap_used, swap_free, mem_percent) " \
+                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
+                 (data['hostname'], data['ip'], data['capturetime'], data['mem']['total'], data['mem']['usage'], data['mem']['free'], data['mem']['swap_total'], data['mem']['swap_used'], data['mem']['swap_free'], data['mem']['percent'])
     # 注意：list类型插入数据库需要先序列化为json类型
     ns_disk_sql = "INSERT INTO " \
-                 "ns_disk (hostname, ip, capturetime, disk, disk_io, disk_read, disk_write) " \
-                 "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
-                 (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), data['disk_rw'][0][0], data['disk_rw'][0][1], data['disk_rw'][0][2])
+                 "ns_disk (hostname, ip, capturetime, disk, disk_io) " \
+                 "VALUES ('%s', '%s', '%s', '%s', '%s') " % \
+                 (data['hostname'], data['ip'], data['capturetime'], json.dumps(data['disk']), json.dumps(data['disk_rw']))
     ns_net_sql = "INSERT INTO " \
                   "ns_net (hostname, ip, capturetime, interface, traffic_in, traffic_out, sockets) " \
                   "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s') " % \
                   (data['hostname'], data['ip'], data['capturetime'], data['traffic'][0]['interface'], data['traffic'][0]['traffic_in'], data['traffic'][0]['traffic_out'], json.dumps(data['sockets']))
     all_sql = [ns_base_sql, ns_cpu_sql, ns_mem_sql, ns_disk_sql, ns_net_sql]
+    # 暂时取消网络流量采集
+    # all_sql = [ns_base_sql, ns_cpu_sql, ns_mem_sql, ns_disk_sql]
     for sql in all_sql:
         # print "[exec_sql--->] {SQL} \n".format(SQL=sql)
         try:
@@ -78,12 +80,12 @@ def server_assets(static_filename):
 def agent():
     try:
         query_all_agent = """
-            SELECT ns_base.hostname, ns_base.ip, mem_percent, cpu_usage
+        SELECT ns_base.hostname, ns_base.ip, ns_mem.mem_percent, ns_cpu.usage_cpu, max(ns_base.capturetime)
                 FROM ns_base, ns_mem, ns_cpu where
                 ns_base.capturetime=ns_mem.capturetime and
                 ns_base.ip=ns_mem.ip and
                 ns_base.capturetime=ns_cpu.capturetime and
-                ns_base.ip=ns_cpu.ip  order by ns_base.ip
+                ns_base.ip=ns_cpu.ip group by ns_base.hostname, ns_base.ip order by ns_base.ip
         """
         db.cur.execute(query_all_agent)
         query_all_agent_res = db.cur.fetchall()
@@ -106,7 +108,7 @@ def show_agent(ip_hostname):
         # ---------------------------start: 采集此节点的静态信息-------------------------------------
 
         show_agent_info = """
-            SELECT hostname, ip, cpu, mem, osname, kernel, uptime, max(capturetime)
+            SELECT hostname, ip, cpu, mem, swap, osname, kernel, uptime, max(capturetime)
             FROM ns_base
             WHERE ip = "{IP_H}" or hostname = "{IP_H}"
             GROUP BY ip;""".format(IP_H=ip_hostname)
@@ -120,28 +122,24 @@ def show_agent(ip_hostname):
 
         # ---------------------------start: 采集此节点的所有内存信息-------------------------------------
         show_agent_mem = """
-            SELECT capturetime, mem_all, mem_usage, mem_free, mem_cached, mem_buffers
+            SELECT capturetime, mem_total, mem_usage, mem_free, swap_total, swap_used, swap_free
             FROM ns_mem
             WHERE ip = "{IP_H}" or hostname = "{IP_H}"
             ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_mem)
         show_agent_mem_temp = db.cur.fetchall()
         # 通过zip逆转采集时间和内存使用量的对应关系:
-        # [(1493087620, u'6186'), (1493087625, u'6186')] ---> [(1493087620, 1493087625), (u'6186', u'6186')]
         unzip_mem = zip(*show_agent_mem_temp)
         once_agent_res['agent_mem'] = unzip_mem
 
         # ---------------------------start: 采集此节点的CPU信息-------------------------------------
 
-        show_agent_cpu_usage = """SELECT capturetime, cpu_usage
+        show_agent_cpu_usage = """SELECT capturetime, usage_cpu, user_cpu, nice_cpu, system_cpu, iowait_cpu
             FROM ns_cpu WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_cpu_usage)
         show_agent_cpu_usage_temp = db.cur.fetchall()
         unzip_cpu_usage = zip(*show_agent_cpu_usage_temp)
-        show_agent_cpu_usage_res = ["", ""]
-        show_agent_cpu_usage_res[0] = list(unzip_cpu_usage[0])
-        show_agent_cpu_usage_res[1] = list(unzip_cpu_usage[1])
-        once_agent_res['agent_cpu'] = show_agent_cpu_usage_res
+        once_agent_res['agent_cpu'] = unzip_cpu_usage
 
         # ---------------------------start: 采集此节点的负载信息-------------------------------------
 
@@ -156,15 +154,15 @@ def show_agent(ip_hostname):
 
         # ---------------------------start: 采集此节点的网卡流量信息-------------------------------------
 
-        show_agent_traffic = """SELECT capturetime, interface, traffic_in, traffic_out
-            FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
-        db.cur.execute(show_agent_traffic)
-        show_agent_traffic_temp = db.cur.fetchall()
-        unzip_traffic = zip(*show_agent_traffic_temp)
-        once_agent_res['agent_traffic'] = unzip_traffic
+        # show_agent_traffic = """SELECT capturetime, interface, traffic_in, traffic_out
+        #     FROM ns_net WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
+        # db.cur.execute(show_agent_traffic)
+        # show_agent_traffic_temp = db.cur.fetchall()
+        # unzip_traffic = zip(*show_agent_traffic_temp)
+        # once_agent_res['agent_traffic'] = unzip_traffic
 
         # ---------------------------start: 采集此节点的硬盘读写速度信息-------------------------------------
-        show_agent_diskio = """SELECT capturetime, disk_io, disk_read, disk_write
+        show_agent_diskio = """SELECT capturetime, disk_io
             FROM ns_disk WHERE ip = "{IP_H}" or hostname = "{IP_H}"  ORDER BY capturetime;""".format(IP_H=ip_hostname)
         db.cur.execute(show_agent_diskio)
         show_agent_diskio_temp = db.cur.fetchall()

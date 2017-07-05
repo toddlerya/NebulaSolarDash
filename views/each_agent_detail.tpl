@@ -3,17 +3,24 @@
 <head>
     <meta charset="utf-8">
     <title>NebulaSolarDash</title>
+    <!-- 引入 echarts.js -->
     <script src="/assets/js/echarts.min.js"></script>
+    <script src="/assets/js/dark.js"></script>
     <link rel="stylesheet" href="/assets/css/ns_tb.css">
+    <script type="text/javascript">
+    setTimeout(function(){window.location.reload()}, 6000000);
+    </script>
 </head>
-<body bgcolor="FFFFCC">
-    <h2 align="center">节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</h2>
+<body bgcolor="#333">
+<!-- body background:#0f0 bgcolor="FFFFCC" -->
+    <h2 align="center"><font color="FFFFFF">节点基础信息 -- 各个图表都可以使用鼠标拖动和滚轮缩放</font></h2>
         <table border="2" align="center"  class="imagetable">
             <tr>
                 <th>主机名</th>
                 <th>IP地址</th>
                 <th>CPU</th>
                 <th>内存(MB)</th>
+                <th>SWAP(MB)</th>
                 <th>操作系统</th>
                 <th>内核版本</th>
                 <th>运行时长</th>
@@ -26,124 +33,39 @@
             </tr>
         </table>
 
+    <table align="center">
+		<h3 align="center"><font color="FFFFFF">节点磁盘存储信息统计</font></h4>
+		<table border="2" align="center"  class="imagetable">
+			<tr>
+				<th>序号</th>
+				<th>文件系统</th>
+				<th>总大小</th>
+				<th>已用</th>
+				<th>剩余</th>
+				<th>使用率</th>
+				<th>挂载点</th>
+			</tr>
+			% for di_num, line in enumerate(result["agent_disk"]):
+			<tr>
+				<td>{{di_num+1}}</td>
+				% for item in line:
+				<td>{{item}}</td>
+				% end
+			</tr>
+			% end
+		</table>
+    </table>
+
     <br/><br/>
 
-    <!-- 内存信息处理 -->
-    % mem_now_time_list = result["agent_mem"][0]
-    % mem_all = result["agent_mem"][1]
-    % mem_usage = list(result["agent_mem"][2])
-    % mem_free = list(result["agent_mem"][3])
-    % mem_cached = list(result["agent_mem"][4])
-    % mem_date_time_list = list()
-    % import time
-    % for mem_now_time in mem_now_time_list:
-    %   mem_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(mem_now_time))
-    %       mem_date_time_list.append(mem_date_time)
-    % end
-
-    <script type="text/javascript">
-        var mem_date_arr = new Array();
-        % for mem_time_item in mem_date_time_list:
-        mem_date_arr.push("{{mem_time_item}}");
-        % end
-    </script>
-
-
-    <!-- 为MEM-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="mem" align="left" style="width: 1750px;height:220px;"></div>
-    <script type="text/javascript">
-        // 基于准备好的dom，初始化echarts实例
-        var myChartMem = echarts.init(document.getElementById('mem'));
-        // 指定图表的配置项和数据
-        var option = {
-            title: {
-                text: '节点内存实时监控'
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'cross',
-                    label: {
-                        backgroundColor: '#6a7985'
-                    }
-                }
-            },
-            legend: {
-                data:['已使用(MB)', '空闲(MB)', '缓存(MB)']
-            },
-            toolbox: {
-                show: true,
-                feature: {
-                    magicType: {type: ['line', 'bar']},
-                    restore: {},
-                    saveAsImage: {}
-                }
-            },
-            dataZoom: [
-                {
-                    type: 'inside',
-                    start: 0,
-                    end: 100,
-                    startValue: mem_date_arr
-                }
-            ],
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true
-            },
-            xAxis: [
-                {
-                    type: 'category',
-                    name: '时间',
-                    nameLocation: 'end',
-                    boundaryGap: false,
-                    nameGap: 40,
-                    data: mem_date_arr
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    max: {{mem_all[0]}},
-                    axisLabel: {
-                        formatter: '{value} MB'
-                    },
-                     name: '内存(MB)'
-                }
-            ],
-            series: [
-                {
-                    name: '已使用(MB)',
-                    type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{mem_usage}}
-                },
-                {
-                    name: '空闲(MB)',
-                    type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{mem_free}}
-                },
-                {
-                    name: '缓存(MB)',
-                    type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{mem_cached}}
-                },
-            ]
-        };
-
-        // 使用刚指定的配置项和数据显示图表。
-        myChartMem.setOption(option);
-    </script>
-
-    <br/>
 
     <!-- CPU信息处理 -->
     % cpu_now_time_list = result["agent_cpu"][0]
     % cpu_usage = list(result["agent_cpu"][1])
+    % cpu_user = list(result["agent_cpu"][2])
+    % cpu_nice = list(result["agent_cpu"][3])
+    % cpu_system = list(result["agent_cpu"][4])
+    % cpu_iowait = list(result["agent_cpu"][5])
     % cpu_date_time_list = list()
     % for cpu_now_time in cpu_now_time_list:
     %   import time
@@ -162,7 +84,7 @@
     <div id="cpu" align="left" style="width: 1750px;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
-        var myChartCpu = echarts.init(document.getElementById('cpu'));
+        var myChartCpu = echarts.init(document.getElementById('cpu'), 'dark');
         // 指定图表的配置项和数据
         var option = {
             title: {
@@ -178,7 +100,7 @@
                 }
             },
             legend: {
-                data:['CPU使用率(%)']
+                data:['USAGE(%)', 'USER(%)', 'NICE(%)', 'SYSTEM(%)', 'IOWAIT(%)']
             },
             toolbox: {
                 show: true,
@@ -223,10 +145,34 @@
             ],
             series: [
                 {
-                    name: 'CPU使用率(%)',
+                    name: 'USAGE(%)',
                     type: 'line',
-                    areaStyle: {normal: {}},
+                    <!-- areaStyle: {normal: {}}, -->
                     data: {{cpu_usage}}
+                },
+                {
+                    name: 'NICE(%)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{cpu_nice}}
+                },
+                {
+                    name: 'USER(%)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{cpu_user}}
+                },
+                {
+                    name: 'SYSTEM(%)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{cpu_system}}
+                },
+                {
+                    name: 'IOWAIT(%)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{cpu_iowait}}
                 }
             ]
         };
@@ -237,6 +183,7 @@
 
     <br/>
 
+
     <!-- 负载信息处理，时间坐标复用CPU -->
 
     % load_avg = list(result["agent_load"])
@@ -245,7 +192,7 @@
     <div id="load" align="left" style="width: 1750px;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
-        var myChartLoad = echarts.init(document.getElementById('load'));
+        var myChartLoad = echarts.init(document.getElementById('load'), 'dark');
         // 指定图表的配置项和数据
         var option = {
             title: {
@@ -305,7 +252,7 @@
                 {
                     name: '平均负载值',
                     type: 'line',
-                    areaStyle: {normal: {}},
+                    <!-- areaStyle: {normal: {}}, -->
                     data: {{load_avg}}
                 }
             ]
@@ -317,34 +264,39 @@
 
     <br/>
 
-    <!-- 网卡流量信息处理 -->
-    % traffic_now_time_list = result["agent_traffic"][0]
-    % traffic_interface = result["agent_traffic"][1][0]
-    % traffic_in = list(result["agent_traffic"][2])
-    % traffic_out = list(result["agent_traffic"][3])
-    % traffic_date_time_list = list()
+
+     <!-- 内存信息处理 -->
+    % mem_now_time_list = result["agent_mem"][0]
+    % mem_all = result["agent_mem"][1]
+    % mem_usage = list(result["agent_mem"][2])
+    % mem_free = list(result["agent_mem"][3])
+    % swap_total = list(result["agent_mem"][4])
+    % swap_usage = list(result["agent_mem"][5])
+    % swap_free = list(result["agent_mem"][6])
+    % mem_date_time_list = list()
     % import time
-    % for traffic_now_time in traffic_now_time_list:
-    %   traffic_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(traffic_now_time))
-    %   traffic_date_time_list.append(traffic_date_time)
+    % for mem_now_time in mem_now_time_list:
+    %   mem_date_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(mem_now_time))
+    %       mem_date_time_list.append(mem_date_time)
     % end
 
     <script type="text/javascript">
-        var traffic_date_arr = new Array();
-        % for traffic_time_item in traffic_date_time_list:
-        traffic_date_arr.push("{{traffic_time_item}}");
+        var mem_date_arr = new Array();
+        % for mem_time_item in mem_date_time_list:
+        mem_date_arr.push("{{mem_time_item}}");
         % end
     </script>
 
-    <!-- 为traffic-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="traffic" align="left" style="width: 1750px;height:220px;"></div>
+
+    <!-- 为MEM-ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="mem" align="left" style="width: 1750px;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
-        var myChartTraffic = echarts.init(document.getElementById('traffic'));
+        var myChartMem = echarts.init(document.getElementById('mem'), 'dark');
         // 指定图表的配置项和数据
         var option = {
             title: {
-                text: '节点网卡流量实时监控'
+                text: '节点内存实时监控'
             },
             tooltip: {
                 trigger: 'axis',
@@ -356,7 +308,7 @@
                 }
             },
             legend: {
-                data:['接收(kbps)', '发送(kbps)']
+                data:['已使用(MB)', '空闲(MB)', 'SWAP已使用(MB)', 'SWAP空闲(MB)']
             },
             toolbox: {
                 show: true,
@@ -371,7 +323,7 @@
                     type: 'inside',
                     start: 0,
                     end: 100,
-                    startValue: traffic_date_arr
+                    startValue: mem_date_arr
                 }
             ],
             grid: {
@@ -387,45 +339,73 @@
                     nameLocation: 'end',
                     boundaryGap: false,
                     nameGap: 40,
-                    data: traffic_date_arr
+                    data: mem_date_arr
                 }
             ],
             yAxis: [
                 {
                     type: 'value',
                     axisLabel: {
-                        formatter: '{value} kbps'
+                        formatter: '{value} MB'
                     },
-                     name: '网卡：{{traffic_interface}}'
+                     name: '内存(MB)'
                 }
             ],
             series: [
                 {
-                    name: '接收(kbps)',
+                    name: '已使用(MB)',
                     type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{traffic_in}}
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{mem_usage}}
                 },
                 {
-                    name: '发送(kbps)',
+                    name: '空闲(MB)',
                     type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{traffic_out}}
-                }
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{mem_free}}
+                },
+                {
+                    name: 'SWAP已使用(MB)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{swap_usage}}
+                },
+                {
+                    name: 'SWAP空闲(MB)',
+                    type: 'line',
+                    <!-- areaStyle: {normal: {}}, -->
+                    data: {{swap_free}}
+                },
             ]
         };
 
         // 使用刚指定的配置项和数据显示图表。
-        myChartTraffic.setOption(option);
+        myChartMem.setOption(option);
     </script>
 
     <br/>
 
+
     <!-- 磁盘读写信息处理 -->
     % diskio_now_time_list = result["agent_diskio"][0]
-    % diskio_disk = result["agent_diskio"][1][0]
-    % diskio_read = list(result["agent_diskio"][2])
-    % diskio_write = list(result["agent_diskio"][3])
+    % diskio_disk = result["agent_diskio"][1][0:]
+    % [diskio_each for diskio_each in diskio_disk]
+    % diskio_util_list = [[i[0], i[-1]] for i in eval(diskio_each) for diskio_each in diskio_disk]
+    % from collections import defaultdict
+    % diskio_dict = defaultdict(list)
+    % for item in diskio_util_list:
+    %     diskio_dict[item[0]].append(item[1])
+    % end
+    % diskio_tag = [tag for tag in diskio_dict]
+
+    <script type="text/javascript">
+        var diskio_tag_arr = new Array();
+        % for tag in diskio_dict:
+        diskio_tag_arr.push("{{tag}}");
+        % end
+    </script>
+
+
     % diskio_date_time_list = list()
     % import time
     % for diskio_now_time in diskio_now_time_list:
@@ -444,7 +424,7 @@
     <div id="diskio" align="left" style="width: 1750px;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
-        var myChartDiskio = echarts.init(document.getElementById('diskio'));
+        var myChartDiskio = echarts.init(document.getElementById('diskio'), 'dark');
         // 指定图表的配置项和数据
         var option = {
             title: {
@@ -460,7 +440,7 @@
                 }
             },
             legend: {
-                data:['读取(ms)', '写入(ms)']
+                data: diskio_tag_arr
             },
             toolbox: {
                 show: true,
@@ -482,7 +462,7 @@
                 left: '3%',
                 right: '4%',
                 bottom: '3%',
-                containLabel: true
+                containLabel: false
             },
             xAxis: [
                 {
@@ -500,76 +480,40 @@
                     axisLabel: {
                         formatter: '{value} ms'
                     },
-                     name: '硬盘：{{diskio_disk}}'
+                     name: '硬盘util (%)'
                 }
             ],
             series: [
-                {
-                    name: '读取(ms)',
-                    type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{diskio_read}}
-                },
-                {
-                    name: '写入(ms)',
-                    type: 'line',
-                    areaStyle: {normal: {}},
-                    data: {{diskio_write}}
-                }
-            ]
+                % diskio_dict_list = [i for i in diskio_dict.iteritems()]
+                % if len(diskio_tag) >= 2:
+                    % for each_series in diskio_dict_list[0:-1]:
+                    {
+                        name: "{{each_series[0]}}",
+                        type: 'line',
+                        <!-- areaStyle: {normal: {}}, -->
+                        data: {{[float(i) for i in each_series[1]]}}
+                    },
+                    % end
+                    {
+                        name: "{{diskio_dict_list[-1][0]}}",
+                        type: 'line',
+                        <!-- areaStyle: {normal: {}}, -->
+                        data: {{[float(i) for i in diskio_dict_list[-1][1]]}}
+                    }
+                % else:
+                    {
+                        name: "{{diskio_dict_list[-1][0]}}",
+                        type: 'line',
+                        // areaStyle: {normal: {}},
+                        data: {{[float(i) for i in diskio_dict_list[-1][1]]}}
+                    }
+                % end
+            ],
         };
 
         // 使用刚指定的配置项和数据显示图表。
         myChartDiskio.setOption(option);
     </script>
-
-    <table align="center">
-        <tr>
-            <td>
-                <h3 align="center">节点SOCKETS连接信息统计</h4>
-                <table border="2" align="center"  class="imagetable">
-                    <tr>
-                        <th>序号</th>
-                        <th>个数</th>
-                        <th>本地IP</th>
-                        <th>本地端口</th>
-                        <th>远程连接IP</th>
-                    </tr>
-                    % for so_num, line in enumerate(result["agent_sockets"]):
-                    <tr>
-                        <td>{{so_num+1}}</td>
-                        % for item in line:
-                        <td>{{item}}</td>
-                        % end
-                    </tr>
-                    % end
-                </table>
-            </td>
-
-            <td>
-                <h3 align="center">节点磁盘存储信息统计</h4>
-                <table border="2" align="center"  class="imagetable">
-                    <tr>
-                        <th>序号</th>
-                        <th>文件系统</th>
-                        <th>总大小</th>
-                        <th>已用</th>
-                        <th>剩余</th>
-                        <th>使用率</th>
-                        <th>挂载点</th>
-                    </tr>
-                    % for di_num, line in enumerate(result["agent_disk"]):
-                    <tr>
-                        <td>{{di_num+1}}</td>
-                        % for item in line:
-                        <td>{{item}}</td>
-                        % end
-                    </tr>
-                    % end
-                </table>
-            </td>
-        </tr>
-    </table>
 
 </body>
 </html>

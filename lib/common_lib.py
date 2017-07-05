@@ -16,7 +16,6 @@ import glob
 import sys
 import time
 import datetime
-import urllib2
 
 
 class ColorPrint:
@@ -60,36 +59,11 @@ class LoadConf(object):
     def read_conf(self, ini_file):
         self.cfg.read(ini_file)
 
-    def get_all_sections(self):
-        try:
-            sec_res = self.cfg.sections()
-            return sec_res
-        except BaseException, e:
-            raise e
-
     def get_conf_item(self, cm='conf_module', ci='conf_item'):
         try:
             return self.cfg.get(cm, ci)
         except BaseException, e:
             raise e
-
-
-def get_conf_pat(ini_file, module, ci='conf_item'):
-    try:
-        lc = LoadConf()
-        lc.read_conf(ini_file)
-        return lc.get_conf_item(module, ci)
-    except Exception, e:
-        raise e
-
-
-def get_all_section(ini_file):
-    try:
-        lc = LoadConf()
-        lc.read_conf(ini_file)
-        return lc.get_all_sections()
-    except Exception, e:
-        raise e
 
 
 class WriteLog():
@@ -171,6 +145,15 @@ def get_files_path(path, suffix):
         return files
     except Exception, e:
         ColorPrint.log_fail("获取{P}路径下以{S}为后缀的文件失败".format(P=path, S=suffix))
+        raise e
+
+
+def get_conf_pat(ini_file, module, ci='conf_item'):
+    try:
+        lc = LoadConf()
+        lc.read_conf(ini_file)
+        return lc.get_conf_item(module, ci)
+    except Exception, e:
         raise e
 
 
