@@ -34,7 +34,18 @@ class InfoGather:
         self.agent_data = dict()
         self.now_capture_time = int(time.time())
         self.hostname = socket.gethostname()
-        self.ip = socket.gethostbyname(self.hostname)
+        # ------------------------ b1gw00d ------------------------------
+        # fix: b1gw00d --> https://github.com/toddlerya/NebulaSolarDash/issues/8
+        try:
+            csock =socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            csock.connect(('8.8.8.8',80))
+            (addr,port)=csock.getsockname()
+            csock.close()
+            self.ip = addr
+        except socket.error:
+            self.ip = '127.0.0.1'
+        # ------------------------ b1gw00d ------------------------------
+        # self.ip = socket.gethostbyname(self.hostname)
         self.agent_data['hostname'] = self.hostname
         self.agent_data['ip'] = self.ip
         self.agent_data['capturetime'] = self.now_capture_time
