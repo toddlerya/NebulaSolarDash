@@ -1,7 +1,10 @@
-#��ǰ���г���汾��
-Version=2.0.1
+#当前运行程序版本号
+Version=2.0.2
 
 #release-notes:
+NebulaSolarDash2.0.2-------------20170927
+1. 修复issues-8，将b1gw00d同学的代码合入ns_agent.py
+
 NebulaSolarDash2.0.1-------------20170614
-1. �޸��ڵ��б�ͳ��sqlδ���鵼�µĴ���
-2. ��ʱȥ��socketͳ����Ϣ������hosts���ò��淶���⵼�µĳ���������������Ż��޸�
+1. 修复节点列表统计sql未分组导致的错误；
+2. 暂时去除socket统计信息，避免hosts配置不规范问题导致的程序崩溃，后续再优化修复
