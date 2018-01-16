@@ -77,12 +77,12 @@ INSTALL_PATH="/home/RunTimeNSDash"
 APP_TAR_NAME="ns_agent.tar.gz"
 LogMsg "校验服务器连通性: ${INSTALL_IP}"
 check_auto_ssh
-if [ $INSTALL_TYPE == "stop" ]
+if [ $INSTALL_TYPE = "stop" ]
 then
     LogMsg "开始停止"
     unset_crond
     stop_agent
-elif [ $INSTALL_TYPE == "uninstall" ]
+elif [ $INSTALL_TYPE = "uninstall" ]
 then
     LogMsg "开始停止"
     stop_agent
