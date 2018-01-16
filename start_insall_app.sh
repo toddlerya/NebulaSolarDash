@@ -73,11 +73,11 @@ APP_TAR_NAME="ns_agent.tar.gz"
 LogMsg "校验服务器连通性: ${INSTALL_IP}"
 LogMsg "开始部署"
 check_auto_ssh
-if [ $INSTALL_TYPE == "start" ]
+if [ $INSTALL_TYPE = "start" ]
 then
     set_crond
     ssh ${INSTALL_IP} "source /etc/profile;cd $INSTALL_PATH;sh start_agent.sh  1>/dev/null 2>/dev/null"
-elif [ $INSTALL_TYPE == "install" ]
+elif [ $INSTALL_TYPE = "install" ]
 then
     install_to_node
     set_crond
