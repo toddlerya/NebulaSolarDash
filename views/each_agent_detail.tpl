@@ -81,7 +81,7 @@
     </script>
 
     <!-- 为cpu-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="cpu" align="left" style="width: 1750px;height:220px;"></div>
+    <div id="cpu" align="left" style="width: 100%;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChartCpu = echarts.init(document.getElementById('cpu'), 'dark');
@@ -189,7 +189,7 @@
     % load_avg = list(result["agent_load"])
 
     <!-- 为cpu-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="load" align="left" style="width: 1750px;height:220px;"></div>
+    <div id="load" align="left" style="width: 100%;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChartLoad = echarts.init(document.getElementById('load'), 'dark');
@@ -289,7 +289,7 @@
 
 
     <!-- 为MEM-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="mem" align="left" style="width: 1750px;height:220px;"></div>
+    <div id="mem" align="left" style="width: 100%;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChartMem = echarts.init(document.getElementById('mem'), 'dark');
@@ -421,7 +421,7 @@
     </script>
 
     <!-- 为diskio-ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="diskio" align="left" style="width: 1750px;height:220px;"></div>
+    <div id="diskio" align="left" style="width: 100%;height:220px;"></div>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChartDiskio = echarts.init(document.getElementById('diskio'), 'dark');
@@ -462,7 +462,7 @@
                 left: '3%',
                 right: '4%',
                 bottom: '3%',
-                containLabel: false
+                containLabel: true
             },
             xAxis: [
                 {
